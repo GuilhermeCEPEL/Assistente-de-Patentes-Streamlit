@@ -11,7 +11,11 @@ from datetime import date
 import textwrap # Para formatar melhor a saída de texto
 from IPython.display import HTML, Markdown
 
-api_key = 'AIzaSyDjlntJyqAL2n6n-Qp9AnUr324wBMFBRso'
+# Acessa a API Key de forma segura através dos Streamlit Secrets
+# O nome da chave 'GOOGLE_API_KEY' deve corresponder ao que você definirá no Streamlit Cloud
+api_key = st.secrets["GOOGLE_API_KEY"]
+
+# Configura a variável de ambiente para as bibliotecas Google
 os.environ["GOOGLE_API_KEY"] = api_key
 
 # Função auxiliar que envia uma mensagem para um agente via Runner e retorna a resposta final

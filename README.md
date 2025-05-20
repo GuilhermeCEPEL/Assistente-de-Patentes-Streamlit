@@ -16,7 +16,7 @@ Experimente o Assistente de Patente online:
 ## ✨ Funcionalidades
 
 * **🔎 Pesquisa de Patentes Similares:** Analisa sua invenção e busca por patentes existentes para identificar o "estado da técnica".
-* **📄 Geração de Formulário (Simulado):** Gera um modelo inicial de formulário de patente seguindo a estrutura do INPI, com base na sua descrição.
+* **📄 Geração de Formulário:** Gera um modelo inicial de formulário de patente seguindo a estrutura do INPI, com base na sua descrição.
 
 ---
 

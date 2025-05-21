@@ -256,8 +256,8 @@ def agente_formatador(topico):
   resultado_do_agente = call_agent(buscador, entrada_do_agente_formatador)
 
   return resultado_do_agente 
-
 # --- Mock de funções Python (para simular o backend real) ---
+
 
 def exibir_resultado(titulo, conteudo):
   st.info(f"\n{titulo}")
@@ -270,7 +270,7 @@ def pesquisar_patentes(descricao: str):
   Realiza a busca em bancos de dados de patentes e retorna os resultados dos agentes separadamente.
   """
   st.info("🔎 Realizando pesquisa em bancos de dados de patentes... Por favor, aguarde.")
-  time.sleep(3) # Simula um atraso de rede/processamento
+  # time.sleep(3) # Simula um atraso de rede/processamento
 
   if not descricao.strip():
     return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
@@ -287,13 +287,7 @@ def pesquisar_patentes(descricao: str):
     return (patentes_identificadas, resumo_de_patentes, sugestoes_identificadas)
 
 def gerar_formulario_patente_inpi(descricao: str) -> str:
-  """
-  Simula a geração de um formulário de patente no formato INPI.
-  Em um cenário real, esta função faria o parse da descrição
-  e preencheria um template de formulário.
-  """
   st.info("📄 Gerando formulário de patente no formato INPI... Por favor, aguarde.")
-  time.sleep(4) # Simula um atraso de processamento
 
   if not descricao.strip():
     return "⚠️ A descrição da patente não pode estar vazia para gerar o formulário."
@@ -301,58 +295,6 @@ def gerar_formulario_patente_inpi(descricao: str) -> str:
     st.info("\nGerando formulário com base na descrição fornecida...")
     descricao_formatada = agente_formatador(descricao)
     return descricao_formatada
-
-  # Exemplo de conteúdo do formulário (simulado)
-
-#   # Conteúdo simulado do formulário INPI
-#   # Nota: Este é um exemplo simplificado. Um gerador real seria muito mais complexo.
-#   form_content = f"""
-# ## FORMULÁRIO DE PEDIDO DE PATENTE DE INVENÇÃO (PI) / MODELO DE UTILIDADE (MU)
-
-# **1. Título da Invenção/Modelo de Utilidade:**
-# {descricao.splitlines()[0][:100] + ('...' if len(descricao.splitlines()[0]) > 100 else '')} (Título Sugerido)
-
-# **2. Campo Técnico da Invenção/Modelo de Utilidade:**
-# [Descrever a área técnica a que a invenção se refere. Ex: Tecnologia da Informação, Biotecnologia, Engenharia Mecânica.]
-# *Baseado na sua descrição, pode ser na área de: {', '.join(set(st.session_state.descricao_patente.lower().split()) & set(['tecnologia', 'software', 'hardware', 'química', 'física', 'engenharia', 'saúde', 'biologia', 'indústria'])) or 'Não definido'}.*
-
-# **3. Estado da Técnica (Antecedentes da Invenção):**
-# [Descrever o conhecimento existente na área, incluindo patentes e artigos, que sejam relevantes para entender a invenção.]
-# *Baseado na sua descrição: Considerar tecnologias e soluções pré-existentes que abordam problemas similares ou que são componentes da sua invenção. Ex: "Atualmente, a literatura descreve [X], [Y] e [Z], que são relevantes para o contexto da presente invenção, mas que apresentam limitações em [Limitação A] e [Limitação B]."*
-
-# **4. Problemas Técnicos a Serem Resolvidos (Objetivos da Invenção):**
-# [Explicar os problemas que a sua invenção se propõe a solucionar e os objetivos técnicos alcançados.]
-# *Sua invenção busca resolver o problema de: "{descricao.split(' ')[0]}..." e tem como objetivo: "[Objetivo principal derivado da sua descrição]."*
-
-# **5. Descrição Detalhada da Invenção/Modelo de Utilidade:**
-# {descricao}
-# [Apresentar a invenção de forma clara e suficiente para que um técnico no assunto possa reproduzi-la. Incluir exemplos, diagramas (se aplicável, apenas menção aqui). Detalhar componentes, funcionamento, vantagens etc.]
-
-# **6. Reivindicações:**
-# [Definem o escopo legal da proteção da patente. Devem ser claras e concisas, sem ir além do que foi descrito. Cada reivindicação deve ser numerada.]
-# *Reivindicação 1: Processo/Sistema/Produto conforme descrito em [ponto principal da descrição].*
-# *Reivindicação 2: O processo/sistema/produto da Reivindicação 1, caracterizado por [detalhe específico].*
-# *Reivindicação 3: ...*
-
-# **7. Resumo:**
-# [Um breve resumo do conteúdo da invenção, com no máximo 200 palavras, que permita compreender a essência da invenção e suas principais aplicações.]
-# *Resumo: A presente invenção refere-se a um [tipo de invenção] que visa [problema resolvido] por meio de [solução principal]. Ela se destaca por [vantagens] e pode ser aplicada em [áreas de aplicação].*
-
-# **8. Desenhos (se aplicável):**
-# [Mencionar figuras, gráficos ou fluxogramas que ilustrem a invenção.]
-# *Desenhos: (Mencionar se há desenhos e seus respectivos números)*
-
-# **9. Inventor(es):**
-# [Nome completo e nacionalidade dos inventores.]
-
-# **10. Depositante(s):**
-# [Nome completo e endereço do(s) depositante(s), que pode ser o próprio inventor ou uma empresa.]
-
-# ---
-# *Este formulário é uma simulação e deve ser adaptado e preenchido cuidadosamente com base nas diretrizes do INPI e aconselhamento jurídico.*
-# """
-
-#   return form_content
 
 # --- Interface Streamlit ---
 
@@ -386,6 +328,8 @@ if 'formulario_patente' not in st.session_state:
   st.session_state.formulario_patente = ""
 if 'descricao_patente' not in st.session_state:
   st.session_state.descricao_patente = "" # Para persistir a descrição entre as execuções
+# if 'ultima_acao' not in st.session_state:
+#   st.session_state.ultima_acao = None
 
 # Atualiza a descrição no session_state quando o text_area muda
 if descricao_patente != st.session_state.descricao_patente:
@@ -408,6 +352,7 @@ with col1:
         st.session_state.resultado_pesquisa = patentes
         st.session_state.resultado_resumo = resumo
         st.session_state.resultado_sugestoes = sugestoes
+        # st.session_state.ultima_acao = "pesquisa"
     else:
       st.warning("Por favor, insira uma descrição da patente para pesquisar.")
 
@@ -416,6 +361,7 @@ with col2:
     if st.session_state.descricao_patente.strip():
       with st.spinner("Gerando formulário..."):
         st.session_state.formulario_patente = gerar_formulario_patente_inpi(st.session_state.descricao_patente)
+        # st.session_state.ultima_acao = "formulario" 
     else:
       st.warning("Por favor, insira uma descrição da patente para gerar o formulário.")
 
@@ -423,6 +369,30 @@ st.markdown("---") # Divisor visual
 
 # Área para os outputs
 st.subheader("Resultado")
+
+# Botão para baixar o resultado completo da pesquisa (três agentes)
+if (
+    st.session_state.resultado_pesquisa
+    and st.session_state.resultado_resumo
+    and st.session_state.resultado_sugestoes
+):
+    conteudo_download = (
+        "===== RESULTADO DA PESQUISA DE PATENTES =====\n\n"
+        f"{st.session_state.resultado_pesquisa}\n\n"
+        "===== RESUMO DAS PATENTES E SIMILARIDADES =====\n\n"
+        f"{st.session_state.resultado_resumo}\n\n"
+        "===== SUGESTÕES DE INOVAÇÕES =====\n\n"
+        f"{st.session_state.resultado_sugestoes}\n"
+    )
+    st.download_button(
+        label="Download Resultado Completo da Pesquisa (.txt)",
+        data=conteudo_download,
+        file_name="resultado_completo_pesquisa_patentes.txt",
+        mime="text/plain",
+        help="Clique para baixar todos os resultados dos agentes em um único arquivo.",
+        type="primary",
+        key="download_pesquisa_1"  # <-- Adicione um key único aqui
+    )
 
 if st.session_state.resultado_pesquisa:
   st.success("✅ Pesquisa Concluída!")
@@ -445,6 +415,7 @@ if st.session_state.resultado_sugestoes:
         height=200,
         key="output_sugestoes",
         help="Sugestões de inovações possíveis para sua patente.")
+
 
 # Output do Formulário
 if st.session_state.formulario_patente:

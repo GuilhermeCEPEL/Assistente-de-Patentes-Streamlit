@@ -393,9 +393,9 @@ if (
         type="primary",
         key="download_pesquisa_1"  # <-- Adicione um key único aqui
     )
+    st.success("✅ Pesquisa Concluída!")
 
 if st.session_state.resultado_pesquisa:
-  st.success("✅ Pesquisa Concluída!")
   st.text_area("1️⃣ Resultado da Pesquisa de Patentes:",
         value=st.session_state.resultado_pesquisa,
         height=200,

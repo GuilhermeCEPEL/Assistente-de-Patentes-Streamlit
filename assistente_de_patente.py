@@ -306,133 +306,174 @@ st.set_page_config(
 )
 
 st.title("💡 Assistente de Patente INPI")
-st.markdown("Bem-vindo ao seu assistente pessoal para gerenciar ideias de patentes.")
+st.markdown("Bem-vindo ao seu assistente pessoal para gerenciar ideias.")
 
-# Campo de texto para a descrição da patente
-st.subheader("📝 Descrição da Patente")
-descricao_patente = st.text_area(
-  "Insira aqui a descrição detalhada da sua invenção ou modelo de utilidade:",
-  height=250,
-  help="Descreva sua ideia com o máximo de detalhes possível, incluindo o problema que ela resolve, como funciona, suas características e vantagens.",
-  key="descricao_patente_input" # Adicionado key para gerenciar o estado
-)
+# Inicializa 'pagina' se ainda não existir na sessão
+if 'pagina' not in st.session_state:
+    st.session_state['pagina'] = '0'
 
-# Inicializa as variáveis de resultado no session_state para persistência
-if 'resultado_pesquisa' not in st.session_state:
-  st.session_state.resultado_pesquisa = ""
-if 'resultado_resumo' not in st.session_state:
-  st.session_state.resultado_resumo = ""
-if 'resultado_sugestoes' not in st.session_state:
-  st.session_state.resultado_sugestoes = ""
-if 'formulario_patente' not in st.session_state:
-  st.session_state.formulario_patente = ""
-if 'descricao_patente' not in st.session_state:
-  st.session_state.descricao_patente = "" # Para persistir a descrição entre as execuções
-# if 'ultima_acao' not in st.session_state:
-#   st.session_state.ultima_acao = None
+if st.session_state['pagina'] == '0':
+    # Campos para nome, matrícula e email do usuário
+    st.subheader("👤 Dados do Usuário")
+    col_nome, col_matricula, col_email = st.columns(3)
+    with col_nome:
+        nome_usuario = st.text_input("Nome completo", key="nome_usuario")
+    with col_matricula:
+        matricula_usuario = st.text_input("Matrícula", key="matricula_usuario")
+    with col_email:
+        email_usuario = st.text_input("E-mail", key="email_usuario")
 
-# Atualiza a descrição no session_state quando o text_area muda
-if descricao_patente != st.session_state.descricao_patente:
-  st.session_state.descricao_patente = descricao_patente
-  # Limpa resultados anteriores se a descrição mudar significativamente
-  st.session_state.resultado_pesquisa = ("", "", "")
-  st.session_state.formulario_patente = ""
-
-
-st.markdown("---") # Divisor visual
-
-# Botões de ação
-col1, col2 = st.columns(2)
-
-with col1:
-  if st.button("🔎 Pesquisar Patentes Similares", type="primary", use_container_width=True):
-    if st.session_state.descricao_patente.strip():
-      with st.spinner("Pesquisando..."):
-        patentes, resumo, sugestoes = pesquisar_patentes(st.session_state.descricao_patente)
-        st.session_state.resultado_pesquisa = patentes
-        st.session_state.resultado_resumo = resumo
-        st.session_state.resultado_sugestoes = sugestoes
-        # st.session_state.ultima_acao = "pesquisa"
-    else:
-      st.warning("Por favor, insira uma descrição da patente para pesquisar.")
-
-with col2:
-  if st.button("📄 Gerar Formulário de Patente (INPI)", type="secondary", use_container_width=True):
-    if st.session_state.descricao_patente.strip():
-      with st.spinner("Gerando formulário..."):
-        st.session_state.formulario_patente = gerar_formulario_patente_inpi(st.session_state.descricao_patente)
-        # st.session_state.ultima_acao = "formulario" 
-    else:
-      st.warning("Por favor, insira uma descrição da patente para gerar o formulário.")
-
-st.markdown("---") # Divisor visual
-
-# Área para os outputs
-st.subheader("Resultado")
-
-# Botão para baixar o resultado completo da pesquisa (três agentes)
-if (
-    st.session_state.resultado_pesquisa
-    and st.session_state.resultado_resumo
-    and st.session_state.resultado_sugestoes
-):
-    conteudo_download = (
-        "===== RESULTADO DA PESQUISA DE PATENTES =====\n\n"
-        f"{st.session_state.resultado_pesquisa}\n\n"
-        "===== RESUMO DAS PATENTES E SIMILARIDADES =====\n\n"
-        f"{st.session_state.resultado_resumo}\n\n"
-        "===== SUGESTÕES DE INOVAÇÕES =====\n\n"
-        f"{st.session_state.resultado_sugestoes}\n"
+    # Adiciona 7 toggle switches no topo da interface
+    st.markdown("### Configurações Avançadas")
+    st.markdown(
+        "Responda **Sim** ou **Não** para cada pergunta abaixo, usando os botões deslizantes (toggle):"
     )
-    st.download_button(
-        label="Download Resultado Completo da Pesquisa (.txt)",
-        data=conteudo_download,
-        file_name="resultado_completo_pesquisa_patentes.txt",
-        mime="text/plain",
-        help="Clique para baixar todos os resultados dos agentes em um único arquivo.",
-        type="primary",
-        key="download_pesquisa_1"  # <-- Adicione um key único aqui
-    )
-    st.success("✅ Pesquisa Concluída!")
+    col_tog1 = st.columns(1)
+    with col_tog1[0]:
+        toggle1 = st.toggle("A ideia é apenas um algoritmo isolado ou método matemático?", key="toggle1")
+        toggle2 = st.toggle("A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?", key="toggle2")
+        toggle3 = st.toggle("A ideia é puramente software (sem aplicação técnica específica)?", key="toggle3")
+        toggle4 = st.toggle("A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?", key="toggle4")
+        toggle5 = st.toggle("A solução é nova? (Não existe algo igual já divulgado ou patenteado?)", key="toggle5")
+        toggle6 = st.toggle("A solução é inventiva? (Não é óbvia para um técnico no assunto?)", key="toggle6")
+        toggle7 = st.toggle("Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)", key="toggle7")
 
-if st.session_state.resultado_pesquisa:
-  st.text_area("1️⃣ Resultado da Pesquisa de Patentes:",
-        value=st.session_state.resultado_pesquisa,
-        height=200,
-        key="output_pesquisa",
-        help="Resultados da busca por patentes similares à sua descrição.")
+    # Botão para avançar para a próxima página (disponível apenas se nome, matrícula e email estiverem preenchidos)
+    if nome_usuario.strip() and matricula_usuario.strip() and email_usuario.strip():
+        if st.button("➡️ Avançar para a próxima página", type="primary"):
+            st.session_state['pagina'] = '1'
+            # st.experimental_rerun() # Normalmente não é necessário se a lógica de exibição estiver bem definida
 
-if st.session_state.resultado_resumo:
-  st.text_area("2️⃣ Resumo das Patentes e Similaridades:",
-        value=st.session_state.resultado_resumo,
-        height=200,
-        key="output_resumo",
-        help="Resumo das patentes similares encontradas.")
-
-if st.session_state.resultado_sugestoes:
-  st.text_area("3️⃣ Sugestões de Inovações:",
-        value=st.session_state.resultado_sugestoes,
-        height=200,
-        key="output_sugestoes",
-        help="Sugestões de inovações possíveis para sua patente.")
-
-
-# Output do Formulário
-if st.session_state.formulario_patente:
-  st.success("✅ Formulário Gerado!")
-  st.download_button(
-    label="Download Formulário (.txt)",
-    data=st.session_state.formulario_patente,
-    file_name="formulario_patente_inpi.txt",
-    mime="text/plain",
-    help="Clique para baixar o formulário gerado em formato de texto.",
-    type="secondary"
+# Lógica para navegação de páginas
+elif st.session_state.get('pagina') == '1':
+  st.markdown("## Página 2: Conteúdo Adicional")
+  
+  # Campo de texto para a descrição da patente
+  st.subheader("📝 Descrição da Patente")
+  descricao_patente = st.text_area(
+    "Insira aqui a descrição detalhada da sua invenção ou modelo de utilidade:",
+    height=250,
+    help="Descreva sua ideia com o máximo de detalhes possível, incluindo o problema que ela resolve, como funciona, suas características e vantagens.",
+    key="descricao_patente_input" # Adicionado key para gerenciar o estado
   )
-  st.text_area("Formulário de Patente INPI (Simulado):",
-        value=st.session_state.formulario_patente,
-        height=600,
-        key="output_formulario",
-        help="Formulário de patente gerado. Lembre-se que este é um modelo simulado.")
+
+  # Inicializa as variáveis de resultado no session_state para persistência
+  if 'resultado_pesquisa' not in st.session_state:
+    st.session_state.resultado_pesquisa = ""
+  if 'resultado_resumo' not in st.session_state:
+    st.session_state.resultado_resumo = ""
+  if 'resultado_sugestoes' not in st.session_state:
+    st.session_state.resultado_sugestoes = ""
+  if 'formulario_patente' not in st.session_state:
+    st.session_state.formulario_patente = ""
+  if 'descricao_patente' not in st.session_state:
+    st.session_state.descricao_patente = "" # Para persistir a descrição entre as execuções
+  # if 'ultima_acao' not in st.session_state:
+  #   st.session_state.ultima_acao = None
+
+  # Atualiza a descrição no session_state quando o text_area muda
+  if descricao_patente != st.session_state.descricao_patente:
+    st.session_state.descricao_patente = descricao_patente
+    # Limpa resultados anteriores se a descrição mudar significativamente
+    st.session_state.resultado_pesquisa = ("", "", "")
+    st.session_state.formulario_patente = ""
+
+  st.markdown("---") # Divisor visual
+
+  # Botões de ação
+  col1, col2 = st.columns(2)
+
+  with col1:
+    if st.button("🔎 Pesquisar Patentes Similares", type="primary", use_container_width=True):
+      if st.session_state.descricao_patente.strip():
+        with st.spinner("Pesquisando..."):
+          patentes, resumo, sugestoes = pesquisar_patentes(st.session_state.descricao_patente)
+          st.session_state.resultado_pesquisa = patentes
+          st.session_state.resultado_resumo = resumo
+          st.session_state.resultado_sugestoes = sugestoes
+          # st.session_state.ultima_acao = "pesquisa"
+      else:
+        st.warning("Por favor, insira uma descrição da patente para pesquisar.")
+
+  with col2:
+    if st.button("📄 Gerar Formulário de Patente (INPI)", type="secondary", use_container_width=True):
+      if st.session_state.descricao_patente.strip():
+        with st.spinner("Gerando formulário..."):
+          st.session_state.formulario_patente = gerar_formulario_patente_inpi(st.session_state.descricao_patente)
+          # st.session_state.ultima_acao = "formulario" 
+      else:
+        st.warning("Por favor, insira uma descrição da patente para gerar o formulário.")
+
+  st.markdown("---") # Divisor visual
+
+  # Área para os outputs
+  st.subheader("Resultado")
+
+  # Botão para baixar o resultado completo da pesquisa (três agentes)
+  if (
+      st.session_state.resultado_pesquisa
+      and st.session_state.resultado_resumo
+      and st.session_state.resultado_sugestoes
+  ):
+      conteudo_download = (
+          "===== RESULTADO DA PESQUISA DE PATENTES =====\n\n"
+          f"{st.session_state.resultado_pesquisa}\n\n"
+          "===== RESUMO DAS PATENTES E SIMILARIDADES =====\n\n"
+          f"{st.session_state.resultado_resumo}\n\n"
+          "===== SUGESTÕES DE INOVAÇÕES =====\n\n"
+          f"{st.session_state.resultado_sugestoes}\n"
+      )
+      st.download_button(
+          label="Download Resultado Completo da Pesquisa (.txt)",
+          data=conteudo_download,
+          file_name="resultado_completo_pesquisa_patentes.txt",
+          mime="text/plain",
+          help="Clique para baixar todos os resultados dos agentes em um único arquivo.",
+          type="primary",
+          key="download_pesquisa_1"  # <-- Adicione um key único aqui
+      )
+      st.success("✅ Pesquisa Concluída!")
+
+  if st.session_state.resultado_pesquisa:
+    st.text_area("1️⃣ Resultado da Pesquisa de Patentes:",
+          value=st.session_state.resultado_pesquisa,
+          height=200,
+          key="output_pesquisa",
+          help="Resultados da busca por patentes similares à sua descrição.")
+
+  if st.session_state.resultado_resumo:
+    st.text_area("2️⃣ Resumo das Patentes e Similaridades:",
+          value=st.session_state.resultado_resumo,
+          height=200,
+          key="output_resumo",
+          help="Resumo das patentes similares encontradas.")
+
+  if st.session_state.resultado_sugestoes:
+    st.text_area("3️⃣ Sugestões de Inovações:",
+          value=st.session_state.resultado_sugestoes,
+          height=200,
+          key="output_sugestoes",
+          help="Sugestões de inovações possíveis para sua patente.")
+
+
+  # Output do Formulário
+  if st.session_state.formulario_patente:
+    st.success("✅ Formulário Gerado!")
+    st.download_button(
+      label="Download Formulário (.txt)",
+      data=st.session_state.formulario_patente,
+      file_name="formulario_patente_inpi.txt",
+      mime="text/plain",
+      help="Clique para baixar o formulário gerado em formato de texto.",
+      type="secondary"
+    )
+    st.text_area("Formulário de Patente INPI (Simulado):",
+          value=st.session_state.formulario_patente,
+          height=600,
+          key="output_formulario",
+          help="Formulário de patente gerado. Lembre-se que este é um modelo simulado.")
+
+  st.stop()
 
 
 st.markdown("""

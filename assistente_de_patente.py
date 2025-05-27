@@ -40,47 +40,7 @@ def call_agent(agent: Agent, message_text: str) -> str:
        final_response += "\n"
   return final_response
 
-##########################################
-# --- Agente 1: Buscador de Patentes --- #
-##########################################
 
-def agente_buscador(topico):
-  buscador = Agent(
-    name="agente_buscador",
-    model="gemini-2.0-flash-thinking-exp",
-    description="Agente que busca se ja existe alguma propriedade intelectual similar a ideia que o usuário quer desenvolver",
-    tools=[google_search],
-    instruction="""
-    Atuando como um pesquisador de propriedade intelectual (PI), sua responsabilidade é investigar a existência de propriedade intelectual
-    similares àquela que o usuário pretende desenvolver. O usuário irá providenciar uma descrição da ideia ou invenção e responderá as seguintes questões:
-
-    - Você já desenvolveu algo (protótipo, código, apresentação)?:
-    - Qual é o setor de aplicação?:
-    
-    A partir disso, você deverá analizar as informações fornecidas para realizar uma busca abrangente para identificar 
-    possíveis propiedades intelectuais (patentes, marcas, direitos autorais, softwares, etc.) que possam ser similares 
-    e determinar se a patente do usuário é original ou não.
-    
-    Para isso, utilize as ferramentas de busca de propriedades intelectuais como INPI (Registro de programa de computador,
-    Busca de Marca Busca Web), Google Patents, PATENTSCOPE, Espacenet, TMView, GitHub, Creative Commons Search, Lens.org,
-    Dewent Innovation, Wayback Machine, Google Scholar, entre outras. A pesquisa deve abranger termos em português e inglês, explorando 
-    sinônimos e palavras relacionadas.
-
-    O resultado da sua pesquisa deve conter a descrição da patente do usuário, seguida divida em duas listas de 
-    patentes relevantes: (1) lista de propriedades intelectuais brasileiras e (2) lista de propriedades intelectuais internacionais. As listas irão
-    conter os seguintes detalhes para cada item: identificador do documento (um número de identificação do documento 
-    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar a PI do documento, resumo em português 
-    (descrição do que se trata essa PI), comparação (onde será feita uma análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que podem ser relevantes.
-
-    Além disso, quando fizer o resultado, não precisa se introduzir.
-    """
-  )
-
-  entrada_do_agente = f"Tópico: {topico}"
-  # Executa o agente
-  lancamentos_buscados = call_agent(buscador, entrada_do_agente)
-
-  return lancamentos_buscados 
 
 ##########################################
 # --- Agente 2: Refinador de descrição de patentes existentes --- #
@@ -258,11 +218,53 @@ def agente_formatador(topico):
 # --- Mock de funções Python (para simular o backend real) ---
 
 ##########################################
+# --- Agente 1: Buscador de Patentes --- #
+##########################################
+
+def agente_buscador(topico):
+  buscador = Agent(
+    name="agente_buscador",
+    model="gemini-2.0-flash-thinking-exp",
+    description="Agente que busca se ja existe alguma propriedade intelectual similar a ideia que o usuário quer desenvolver",
+    tools=[google_search],
+    instruction="""
+    Atuando como um pesquisador de propriedade intelectual (PI), sua responsabilidade é investigar a existência de propriedade intelectual
+    similares àquela que o usuário pretende desenvolver. O usuário irá providenciar uma descrição da ideia ou invenção e responderá as seguintes questões:
+
+    - Você já desenvolveu algo (protótipo, código, apresentação)?:
+    - Qual é o setor de aplicação?:
+    
+    A partir disso, você deverá analizar as informações fornecidas para realizar uma busca abrangente para identificar 
+    possíveis propiedades intelectuais (patentes, marcas, direitos autorais, softwares, etc.) que possam ser similares 
+    e determinar se a patente do usuário é original ou não.
+    
+    Para isso, utilize as ferramentas de busca de propriedades intelectuais como INPI (Registro de programa de computador,
+    Busca de Marca Busca Web), Google Patents, PATENTSCOPE, Espacenet, TMView, GitHub, Creative Commons Search, Lens.org,
+    Dewent Innovation, Wayback Machine, Google Scholar, entre outras. A pesquisa deve abranger termos em português e inglês, explorando 
+    sinônimos e palavras relacionadas.
+
+    O resultado da sua pesquisa deve conter a descrição da patente do usuário, seguida divida em duas listas de 
+    patentes relevantes: (1) lista de propriedades intelectuais brasileiras e (2) lista de propriedades intelectuais internacionais. As listas irão
+    conter os seguintes detalhes para cada item: identificador do documento (um número de identificação do documento 
+    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar a PI do documento, resumo em português 
+    (descrição do que se trata essa PI), comparação (onde será feita uma análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que podem ser relevantes.
+
+    Além disso, quando fizer o resultado, não precisa se introduzir.
+    """
+  )
+
+  entrada_do_agente = f"Tópico: {topico}"
+  # Executa o agente
+  lancamentos_buscados = call_agent(buscador, entrada_do_agente)
+
+  return lancamentos_buscados 
+
+##########################################
 # --- Agente 5: Agente Recomendador --- #
 ##########################################
 
 def agente_recomendador(topico):
-  buscador = Agent(
+  agente = Agent(
     name="agente_recomendador",
     model="gemini-2.0-flash-thinking-exp",
     description="Agente que analisa o formulário preenchido pelo usuário e faz uma recomendação de como proceder",
@@ -292,6 +294,12 @@ def agente_recomendador(topico):
     """
   )
 
+  entrada_do_agente= f"Tópico: {topico}"
+  # Executa o agente
+  resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+  return resultado_do_agente 
+
 def agente_avaliador(topico):
   agente = Agent(
     name="agente_recomendador",
@@ -303,13 +311,18 @@ def agente_avaliador(topico):
     fazer uma avaliação detalhada dos pontos fortes e fracos da ideia, avaliando a possibilidade de tornar a ideia uma propriedade intelectual,
     considerando as informações fornecidas.
 
-    Você deverá gerar uma nota de 0/10 para o potencial da ideia, sendo 10 uma ideia muito inovadora, original e com muito potencial para se tornar uma propriedade 
-    intelectual e 0 uma ideia que não é inovadora, nem original e não possui potencial para se tornar uma propriedade intelectual. Além disso faça uma breve descrição 
-    de um parágrafo do porquê dessa nota.
+    Você deverá gerar uma nota de 0/10 para o potencial da ideia seguindo os seguintes critérios:
+    - Inovação: A ideia apresenta uma abordagem nova ou uma solução inovadora para um problema existente?
+    - Originalidade: A ideia é única e não existem soluções similares disponíveis?
+    - Potencial de Propriedade Intelectual: A ideia tem características que a tornam passível de proteção legal, como patenteabilidade ou registro de software?
+    A nota deve ser uma escala de 0 a 10, onde 0 significa que a ideia não é inovadora, nem original e não possui potencial para se tornar uma propriedade intelectual,
+    e 10 significa que a ideia é altamente inovadora, original e possui um grande potencial para se tornar uma propriedade intelectual.
+
+    Você deve fornecer um título que resuma a avaliação e uma breve descrição de um parágrafo da avaliação do potencial da ideia.
 
     O resultado deve seguir o seguinte formato:
 
-    X/10 - 'titulo da avaliação'
+    X/10 - 'titulo que resuma a avaliação'
     'Avaliação do potencial da ideia.'
 
     Além disso, quando fizer o resultado, não precisa se introduzir.
@@ -358,24 +371,6 @@ def gerar_formulario_patente_inpi(descricao: str) -> str:
     st.info("\nGerando formulário com base na descrição fornecida...")
     descricao_formatada = agente_formatador(descricao)
     return descricao_formatada
-
-def analise_dos_resultados(repostas_descritivas, formulario):
-  st.info("🔎 Analisando as respostas ... Por favor, aguarde.")
-  # time.sleep(3) # Simula um atraso de rede/processamento
-
-  if not repostas_descritivas.strip() or not formulario.strip():
-    return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
-  else:
-    st.info("\n[1/3] Buscando patentes similares...")
-    resultado_da_busca = agente_buscador(formulario+repostas_descritivas)
-
-    st.info("\n[2/3] Buscando patentes similares...")
-    resultado_da_avaliacao = agente_avaliador(formulario+resultado_da_busca)
-
-    st.info("\n[3/3] Analisando as possibilidades de patenteabilidade...")
-    recomendacao = agente_recomendador(formulario)
-
-    return (resultado_da_busca, resultado_da_avaliacao, recomendacao)
 
 # Function to navigate to the next page
 def next_page():
@@ -432,14 +427,28 @@ def show_form(title, questions):
     elif response == 'Não':
       st.session_state.questionsData[q['id']] = False
 
+
+def analise_dos_resultados(repostas_descritivas, formulario):
+  st.info("🔎 Analisando as respostas ... Por favor, aguarde.")
+  # time.sleep(3) # Simula um atraso de rede/processamento
+
+  if not repostas_descritivas.strip() or not formulario.strip():
+    return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
+  else:
+    st.info("\n[1/3] Buscando patentes similares...")
+    resultado_da_busca = agente_buscador(f"{repostas_descritivas}\n\n{formulario}")
+
+    st.info("\n[2/3] Buscando patentes similares...")
+    resultado_da_avaliacao = agente_avaliador(f"{repostas_descritivas}\n\n{formulario}")
+
+    return (resultado_da_busca, resultado_da_avaliacao, recomendacao)
+
 st.set_page_config(
   page_title="InovaFacil",
   page_icon="💡",
   layout="wide",
   initial_sidebar_state="auto"
 )
-st.title("💡 InovaFacil - Guia de Ideias")
-st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
 
 # Initialize session state variables if they don't exist
 if 'currentPage' not in st.session_state:
@@ -468,20 +477,24 @@ if 'ideaText' not in st.session_state:
 
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
-    st.title("Suas Informações")
-    st.write("Por favor, preencha seus dados para continuar.")
+  st.title("💡 InovaFacil - Guia de Ideias")
+  st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
 
-    # Input fields for user data
-    st.session_state.userData['name'] = st.text_input("Nome:", value=st.session_state.userData['name'])
-    st.session_state.userData['matricula'] = st.text_input("Matrícula:", value=st.session_state.userData['matricula'])
-    st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'])
 
-    # Check if all user data fields are filled
-    is_user_data_complete = all(st.session_state.userData.values())
+  st.title("Suas Informações")
+  st.write("Por favor, preencha seus dados para continuar.")
 
-    # "Next Page" button
-    if st.button("Próxima Página", key="prox_page_button_1", disabled=not is_user_data_complete):
-        next_page()
+  # Input fields for user data
+  st.session_state.userData['name'] = st.text_input("Nome:", value=st.session_state.userData['name'])
+  st.session_state.userData['matricula'] = st.text_input("Matrícula:", value=st.session_state.userData['matricula'])
+  st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'])
+
+  # Check if all user data fields are filled
+  is_user_data_complete = all(st.session_state.userData.values())
+
+  # "Next Page" button
+  if st.button("Próxima Página", key="prox_page_button_1", disabled=not is_user_data_complete):
+    next_page()
 
 # --- Page 2: Yes/No Questions ---
 elif st.session_state.currentPage == 2:
@@ -524,8 +537,31 @@ elif st.session_state.currentPage == 2:
 
 # --- Page 3: Idea Description ---
 elif st.session_state.currentPage == 3:
+  # Monta o formulário com as respostas do usuário
+  formulario = f"""
+  **Natureza da Ideia**
+  A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
+  A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
+  A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
+  **Critérios de patenteabilidade**
+  A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
+  A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
+  A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
+  Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
+  A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
+  Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
+  Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
+  """
+  
+  with st.spinner("Analisando as respostas do formulário..."):
+    recomendacao = agente_recomendador(formulario)
+
+  with st.expander("🔔 Clique para ver a recomendação de protejer sua ideia 🔔", expanded=False):
+    st.markdown("#### Recomendação do Assistente")
+    st.write(recomendacao)
+
   st.title("Descreva Sua Ideia")
-  st.write("Por favor, descreva sua ideia em detalhes. Os campos marcados com * são obrigatórios.")
+  st.write("Descreva sua ideia em detalhes para ser feita uma análise mais objetiva. Os campos marcados com * são obrigatórios.")
 
   # Campos obrigatórios
   st.session_state.ideaText_main = st.text_area(
@@ -566,23 +602,6 @@ elif st.session_state.currentPage == 3:
 # --- Page 4: Idea Description ---
 elif st.session_state.currentPage == 4:
 
-  # Monta o formulário com as respostas do usuário
-  formulario = f"""
-  **Natureza da Ideia**
-  A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
-  A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
-  A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
-  **Critérios de patenteabilidade**
-  A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
-  A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
-  A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
-  Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
-  A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
-  Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
-  Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
-
-  """
-
   repostas_descritivas = f"""
   **Descrição da Ideia**
   Descrição da ideia ou invenção: {st.session_state.ideaText_main}
@@ -592,27 +611,23 @@ elif st.session_state.currentPage == 4:
   """
 
   with st.spinner("Pesquisando..."):
-    resultado_da_busca, resultado_da_avaliacao, recomendacao = analise_dos_resultados(repostas_descritivas, repostas_descritivas)
+    resultado_da_busca, resultado_da_avaliacao, recomendacao = analise_dos_resultados(repostas_descritivas, formulario)
 
   # Separa o resultado_da_avaliacao em título e texto usando o primeiro '\n'
-  if resultado_da_avaliacao and '\n' in resultado_da_avaliacao:
+  if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
       titulo, texto = resultado_da_avaliacao.split('\n', 1)
   else:
-      titulo = resultado_da_avaliacao
+      titulo = resultado_da_avaliacao if resultado_da_avaliacao else "Resultado não disponível"
       texto = ""
 
   st.title(titulo)
   st.write(texto)
   
   # Exibe a recomendação de forma mais destacada e organizada
-  with st.expander("⚠️ Clique para ver a análise de propriedades similares", expanded=False):
+  with st.expander("❕ Análise de Propriedades Similares ❕", expanded=False):
     st.markdown("#### Análise de Propriedades Similares")
     st.write(resultado_da_busca)
 
-  # Exibe a recomendação de forma mais destacada e organizada
-  with st.expander("🔔 Clique para ver a recomendação de protejer sua ideia", expanded=False):
-    st.markdown("#### Recomendação do Assistente")
-    st.write(recomendacao)
     
   # st.title("Descreva Sua Ideia")
   # st.write("Por favor, descreva sua ideia em detalhes.")

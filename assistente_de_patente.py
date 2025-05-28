@@ -11,6 +11,8 @@ from google import genai
 from datetime import date
 import textwrap # Para formatar melhor a saída de texto
 from IPython.display import HTML, Markdown
+import re
+
 
 # Acessa a API Key de forma segura através dos Streamlit Secrets
 # O nome da chave 'GOOGLE_API_KEY' deve corresponder ao que você definirá no Streamlit Cloud
@@ -49,7 +51,7 @@ def call_agent(agent: Agent, message_text: str) -> str:
 def agente_resumidor(topico):
   buscador = Agent(
     name="agente_resumidor",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que analisa a descrição de patentes existentes e faz um resumo delas com as similaridades e diferenças em relação a patente que o usuário quer desenvolver",
     tools=[google_search],
     instruction="""
@@ -94,7 +96,7 @@ def agente_resumidor(topico):
 def agente_sugestor(topico):
   buscador = Agent(
     name="agente_sugestor",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que analisa a patente de usuário e as patentes existentes para sugerir inovações que podem ser patenteadas",
     tools=[google_search],
     instruction="""
@@ -127,7 +129,7 @@ def agente_sugestor(topico):
 def agente_formatador(topico):
   buscador = Agent(
     name="agente_buscador",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que irá formatar a descrição da patente no formato no INPI",
     tools=[google_search],
     instruction="""
@@ -221,10 +223,43 @@ def agente_formatador(topico):
 # --- Agente 1: Buscador de Patentes --- #
 ##########################################
 
+def agente_revisor(topico):
+  agente = Agent(
+    name="agente_revisor",
+    model="gemini-2.5-flash-preview-05-20",
+    description="Agente que irá revisar a busca feita por outro agente e verificar se a busca foi completa",
+    tools=[google_search],
+    instruction="""
+    O seu trabalho será revisar uma lista de propriedades intelectuais (PI) que foram buscadas por outro agente. O agente irá lhe informar uma lista de PIs que foram encontradas,
+    e você deve analisar se os itens dessa lista realmente existem, se as informações descritas estão coerentes com a PI E, se necessário, atualizar elas informações da lista.
+    
+    Você deve verificar se as PIs estão completas, se os links estão corretos e se as informações estão em conformidade com a PI encontrada. Caso o link não esteja correto ou seja um
+    link gerado como exemplo, você deve buscar o link correto e atualizar a PI na lista final. Caso encontre alguma PI que não esteja completa ou com informações
+    incorretas, você deve corrigir as informações e adicionar a PI corrigida na lista final.
+
+    Caso a PI analisada não possa ser encontrada, remova ela da lista final.
+
+    A partir da nova lista final, reavalie as conclusões e análises feitas pelo agente buscador e reescreva-as.
+
+    Além disso, quando fizer o resultado, não precisa se introduzir.
+    """
+  )
+
+  entrada_do_agente = f"Tópico: {topico}"
+  # Executa o agente
+  lancamentos_buscados = call_agent(agente, entrada_do_agente)
+
+  return lancamentos_buscados 
+
+
+##########################################
+# --- Agente 1: Buscador de Patentes --- #
+##########################################
+
 def agente_buscador(topico):
   buscador = Agent(
     name="agente_buscador",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que busca se ja existe alguma propriedade intelectual similar a ideia que o usuário quer desenvolver",
     tools=[google_search],
     instruction="""
@@ -243,12 +278,41 @@ def agente_buscador(topico):
     Dewent Innovation, Wayback Machine, Google Scholar, entre outras. A pesquisa deve abranger termos em português e inglês, explorando 
     sinônimos e palavras relacionadas.
 
-    O resultado da sua pesquisa deve conter a descrição da patente do usuário, seguida divida em duas listas de 
+    O resultado da sua pesquisa deve conter a descrição da ideia do usuário, seguida divida em duas listas de 
     patentes relevantes: (1) lista de propriedades intelectuais brasileiras e (2) lista de propriedades intelectuais internacionais. As listas irão
     conter os seguintes detalhes para cada item: identificador do documento (um número de identificação do documento 
-    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar a PI do documento, resumo em português 
-    (descrição do que se trata essa PI), comparação (onde será feita uma análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que podem ser relevantes.
+    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar essa PI (Não gere um link falso ou exemplo, 
+    caso não consiga um link, justifique por que não conseguiu), resumo em português (descrição do que se trata essa PI), comparação (onde será feita uma 
+    análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que podem ser relevantes.
 
+    Siga o seguinte formato para a listagem no resultado:
+
+    1. Lista de Propriedades Intelectuais Brasileiras
+
+      - Identificador do Documento:
+
+        - Título da PI: Plantas sob controle: 
+        - Link para Acessar a PI: 
+        - Resumo em Português: 
+        - Comparação:
+        - Outras informações relevantes: 
+        \n\n
+
+        ...
+
+    ------------------------------------------------------------------------------------
+        
+    2. Lista de Propriedades Intelectuais Internacionais
+
+      - Identificador do Documento:
+
+        - Título da PI: Plantas sob controle: 
+        - Link para Acessar a PI: 
+        ...
+
+
+    Após listar as propriedades intelectuais, você deve fazer uma conclusão das pesquisas feitas, analisando se a ideia do usuário é original ou não,
+    
     Além disso, quando fizer o resultado, não precisa se introduzir.
     """
   )
@@ -266,7 +330,7 @@ def agente_buscador(topico):
 def agente_recomendador(topico):
   agente = Agent(
     name="agente_recomendador",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que analisa o formulário preenchido pelo usuário e faz uma recomendação de como proceder",
     tools=[google_search],
     instruction="""
@@ -303,27 +367,28 @@ def agente_recomendador(topico):
 def agente_avaliador(topico):
   agente = Agent(
     name="agente_recomendador",
-    model="gemini-2.0-flash-thinking-exp",
+    model="gemini-2.5-flash-preview-05-20",
     description="Agente que avalia o potencial da ideia baseado nas análises feitas pelos outros agentes",
     tools=[google_search],
     instruction="""
     Seu papel será avaliar o potencial da ideia do usuário baseado nas análises feitas pelos outros agentes. Seu objetivo será
-    fazer uma avaliação detalhada dos pontos fortes e fracos da ideia, avaliando a possibilidade de tornar a ideia uma propriedade intelectual,
+    fazer uma avaliação detalhada dos pontos fortes e fracos da ideia, avaliando a possibilidade de tornar a ideia uma propriedade intelectual (PI),
     considerando as informações fornecidas.
 
-    Você deverá gerar uma nota de 0/10 para o potencial da ideia seguindo os seguintes critérios:
+    Você deverá gerar uma nota realista de 0 até 10 para o potencial da ideia utilizando a pesquisa de PIs realizada anteriormente seguindo os seguintes critérios:
     - Inovação: A ideia apresenta uma abordagem nova ou uma solução inovadora para um problema existente?
     - Originalidade: A ideia é única e não existem soluções similares disponíveis?
     - Potencial de Propriedade Intelectual: A ideia tem características que a tornam passível de proteção legal, como patenteabilidade ou registro de software?
-    A nota deve ser uma escala de 0 a 10, onde 0 significa que a ideia não é inovadora, nem original e não possui potencial para se tornar uma propriedade intelectual,
-    e 10 significa que a ideia é altamente inovadora, original e possui um grande potencial para se tornar uma propriedade intelectual.
+    A nota deve ser uma escala de 0 a 10, onde cada critério deve ser avaliado de 0 a 10, e a nota final será a média aritmética dos critérios avaliados.
 
-    Você deve fornecer um título que resuma a avaliação e uma breve descrição de um parágrafo da avaliação do potencial da ideia.
+    Você deve fornecer um título que resuma a avaliação, as notas para cada critério e um breve justificativa da nota dada para cada critérito.
 
     O resultado deve seguir o seguinte formato:
 
-    X/10 - 'titulo que resuma a avaliação'
-    'Avaliação do potencial da ideia.'
+    X/10 - 'titulo que resuma a avaliação'\n
+    x/10 - Inovação: 'justificativa breve da nota'\n
+    x/10 - Originalidade: 'justificativa breve da nota'\n
+    x/10 - Potencial de Propriedade Intelectual: 'justificativa breve da nota'
 
     Além disso, quando fizer o resultado, não precisa se introduzir.
     """
@@ -331,6 +396,7 @@ def agente_avaliador(topico):
 
   entrada_do_agente= f"Tópico: {topico}"
   # Executa o agente
+
   resultado_do_agente = call_agent(agente, entrada_do_agente)
 
   return resultado_do_agente 
@@ -341,36 +407,36 @@ def exibir_resultado(titulo, conteudo):
   st.info(textwrap.indent(conteudo, '  '))
   st.info("=" * 40)
 
-def pesquisar_patentes(descricao: str):
-  """
-  Realiza a busca em bancos de dados de patentes e retorna os resultados dos agentes separadamente.
-  """
-  st.info("🔎 Realizando pesquisa em bancos de dados de patentes... Por favor, aguarde.")
-  # time.sleep(3) # Simula um atraso de rede/processamento
+# def pesquisar_patentes(descricao: str):
+#   """
+#   Realiza a busca em bancos de dados de patentes e retorna os resultados dos agentes separadamente.
+#   """
+#   st.info("🔎 Realizando pesquisa em bancos de dados de patentes... Por favor, aguarde.")
+#   # time.sleep(3) # Simula um atraso de rede/processamento
 
-  if not descricao.strip():
-    return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
-  else:
-    st.info("\n[1/3] Buscando patentes similares...")
-    patentes_identificadas = agente_buscador(descricao)
+#   if not descricao.strip():
+#     return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
+#   else:
+#     st.info("\n[1/3] Buscando patentes similares...")
+#     patentes_identificadas = agente_buscador(descricao)
 
-    st.info("\n[2/3] Resumindo patentes encontradas...")
-    resumo_de_patentes = agente_resumidor(patentes_identificadas)
+#     st.info("\n[2/3] Resumindo patentes encontradas...")
+#     resumo_de_patentes = agente_resumidor(patentes_identificadas)
 
-    st.info("\n[3/3] Sugerindo inovações possíveis...")
-    sugestoes_identificadas = agente_sugestor(resumo_de_patentes)
+#     st.info("\n[3/3] Sugerindo inovações possíveis...")
+#     sugestoes_identificadas = agente_sugestor(resumo_de_patentes)
 
-    return (patentes_identificadas, resumo_de_patentes, sugestoes_identificadas)
+#     return (patentes_identificadas, resumo_de_patentes, sugestoes_identificadas)
 
-def gerar_formulario_patente_inpi(descricao: str) -> str:
-  st.info("📄 Gerando formulário de patente no formato INPI... Por favor, aguarde.")
+# def gerar_formulario_patente_inpi(descricao: str) -> str:
+#   st.info("📄 Gerando formulário de patente no formato INPI... Por favor, aguarde.")
 
-  if not descricao.strip():
-    return "⚠️ A descrição da patente não pode estar vazia para gerar o formulário."
-  else:  
-    st.info("\nGerando formulário com base na descrição fornecida...")
-    descricao_formatada = agente_formatador(descricao)
-    return descricao_formatada
+#   if not descricao.strip():
+#     return "⚠️ A descrição da patente não pode estar vazia para gerar o formulário."
+#   else:  
+#     st.info("\nGerando formulário com base na descrição fornecida...")
+#     descricao_formatada = agente_formatador(descricao)
+#     return descricao_formatada
 
 # Function to navigate to the next page
 def next_page():
@@ -427,21 +493,26 @@ def show_form(title, questions):
     elif response == 'Não':
       st.session_state.questionsData[q['id']] = False
 
-
 def analise_dos_resultados(repostas_descritivas, formulario):
-  st.info("🔎 Analisando as respostas ... Por favor, aguarde.")
+  # Use a placeholder container for temporary info messages
+  info_placeholder = st.empty()
+  info_placeholder.info("🔎 Analisando as respostas ... Por favor, aguarde.")
   # time.sleep(3) # Simula um atraso de rede/processamento
-
   if not repostas_descritivas.strip() or not formulario.strip():
+    info_placeholder.empty()  # Remove the info message
     return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
   else:
-    st.info("\n[1/3] Buscando patentes similares...")
+    info_placeholder.info("\n[1/3] Buscando patentes similares...")
     resultado_da_busca = agente_buscador(f"{repostas_descritivas}\n\n{formulario}")
 
-    st.info("\n[2/3] Buscando patentes similares...")
-    resultado_da_avaliacao = agente_avaliador(f"{repostas_descritivas}\n\n{formulario}")
+    info_placeholder.info("\n[2/3] Revisando a lista de PIs encontradas...")
+    resultado_da_revisao = agente_buscador(resultado_da_busca)
 
-    return (resultado_da_busca, resultado_da_avaliacao, recomendacao)
+    info_placeholder.info("\n[3/3] Avaliando os resultados...")
+    resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
+
+    info_placeholder.empty()  # Remove the info message after processing
+    return (resultado_da_revisao, resultado_da_avaliacao)
 
 st.set_page_config(
   page_title="InovaFacil",
@@ -449,6 +520,9 @@ st.set_page_config(
   layout="wide",
   initial_sidebar_state="auto"
 )
+
+formulario = ""
+initialize_session_state = False
 
 # Initialize session state variables if they don't exist
 if 'currentPage' not in st.session_state:
@@ -485,8 +559,27 @@ if st.session_state.currentPage == 1:
   st.write("Por favor, preencha seus dados para continuar.")
 
   # Input fields for user data
-  st.session_state.userData['name'] = st.text_input("Nome:", value=st.session_state.userData['name'])
-  st.session_state.userData['matricula'] = st.text_input("Matrícula:", value=st.session_state.userData['matricula'])
+  # Nome: não permitir números nem caracteres especiais
+  def clean_name_input(name):
+      # Permite apenas letras (incluindo acentos) e espaços
+      return re.sub(r"[^A-Za-zÀ-ÿ\s]", "", name)
+
+  raw_name = st.text_input("Nome:", value=st.session_state.userData['name'])
+  cleaned_name = clean_name_input(raw_name)
+  if raw_name != cleaned_name:
+      st.warning("O nome deve conter apenas letras e espaços.")
+  st.session_state.userData['name'] = cleaned_name
+
+  st.session_state.userData['matricula'] = st.text_input(
+      "Matrícula:",
+      value=st.session_state.userData['matricula'],
+      key="matricula_input"
+  )
+  # Permitir apenas números
+  if st.session_state.userData['matricula'] and not st.session_state.userData['matricula'].isdigit():
+      st.warning("A matrícula deve conter apenas números.")
+      st.session_state.userData['matricula'] = ''.join(filter(str.isdigit, st.session_state.userData['matricula']))
+
   st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'])
 
   # Check if all user data fields are filled
@@ -529,32 +622,36 @@ elif st.session_state.currentPage == 2:
 
   col1, col2 = st.columns(2)
   with col1:
-    if st.button("Página Anterior", key="prev_page_button_2"):
+    if st.button("Voltar", key="prev_page_button_2"):
       prev_page()
   with col2:
     if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
       next_page()
+      initialize_session_state = False  
+      
+
 
 # --- Page 3: Idea Description ---
 elif st.session_state.currentPage == 3:
-  # Monta o formulário com as respostas do usuário
-  formulario = f"""
-  **Natureza da Ideia**
-  A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
-  A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
-  A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
-  **Critérios de patenteabilidade**
-  A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
-  A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
-  A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
-  Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
-  A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
-  Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
-  Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
-  """
-  
-  with st.spinner("Analisando as respostas do formulário..."):
-    recomendacao = agente_recomendador(formulario)
+  if initialize_session_state == False:
+    # Monta o formulário com as respostas do usuário
+    formulario = f"""
+    **Natureza da Ideia**
+    A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
+    A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
+    A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
+    **Critérios de patenteabilidade**
+    A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
+    A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
+    A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
+    Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
+    A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
+    Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
+    Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
+    """
+    with st.spinner("Analisando as respostas do formulário..."):
+        recomendacao = agente_recomendador(formulario)
+    initialize_session_state = True
 
   with st.expander("🔔 Clique para ver a recomendação de protejer sua ideia 🔔", expanded=False):
     st.markdown("#### Recomendação do Assistente")
@@ -592,12 +689,15 @@ elif st.session_state.currentPage == 3:
       help="Ex: energia, educação, tecnologia, etc."
   )
 
-  # Exemplo de validação de campo obrigatório
-  if st.button("Próxima Página", key="prox_page_button_3"):
-      if not st.session_state.ideaText_main.strip() or not st.session_state.ideaText_sector.strip() or not st.session_state.ideaText_differential.strip():
-          st.warning("O campo obrigatório não preenchido.")
-      else:
-          next_page()
+  are_questions_complete = st.session_state.ideaText_main.strip() and st.session_state.ideaText_sector.strip() and st.session_state.ideaText_differential.strip()
+  
+  col1, col2 = st.columns(2)
+  with col1:
+    if st.button("Voltar", key="prev_page_button_3"):
+      prev_page()
+  with col2:
+    if st.button("Próxima Página", key="prox_page_button_3", disabled=not are_questions_complete):
+      next_page()
 
 # --- Page 4: Idea Description ---
 elif st.session_state.currentPage == 4:
@@ -609,9 +709,25 @@ elif st.session_state.currentPage == 4:
   Você já desenvolveu algo (protótipo, código, apresentação)?: {st.session_state.ideaText_dev}
   Qual é o setor de aplicação?: {st.session_state.ideaText_sector}
   """
+  formulario = f"""
+  **Natureza da Ideia**
+  A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
+  A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
+  A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
+  **Critérios de patenteabilidade**
+  A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
+  A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
+  A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
+  Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
+  A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
+  Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
+  Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
+  """
+
+  # st.write(formulario)
 
   with st.spinner("Pesquisando..."):
-    resultado_da_busca, resultado_da_avaliacao, recomendacao = analise_dos_resultados(repostas_descritivas, formulario)
+    resultado_da_busca, resultado_da_avaliacao = analise_dos_resultados(repostas_descritivas, formulario)
 
   # Separa o resultado_da_avaliacao em título e texto usando o primeiro '\n'
   if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
@@ -641,7 +757,7 @@ elif st.session_state.currentPage == 4:
 
   col1, col2 = st.columns(2)
   with col1:
-      if st.button("Página Anterior", key="prev_page_button_3"):
+      if st.button("Voltar", key="prev_page_button_3"):
           prev_page()
   with col2:
       if st.button("Finalizar Formulário", key="finish_form_button"):

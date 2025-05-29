@@ -514,6 +514,8 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     info_placeholder.empty()  # Remove the info message after processing
     return (resultado_da_revisao, resultado_da_avaliacao)
 
+
+
 st.set_page_config(
   page_title="InovaFacil",
   page_icon="💡",
@@ -521,8 +523,22 @@ st.set_page_config(
   initial_sidebar_state="auto"
 )
 
+# CSS para aplicar um degradê linear ao plano de fundo
+st.markdown(
+    """
+    <style>
+    .stApp {
+        /*background: linear-gradient(to right, #e0f7fa, #bbdefb); /* Degradê do azul claro para o azul médio */
+        background: linear-gradient(to bottom, #009E49, #00AEEF); */ /* Exemplo de degradê amarelo para laranja */
+        /* background: radial-gradient(circle, #ADD8E6, #87CEEB); */ /* Exemplo de degradê radial */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 formulario = ""
-initialize_session_state = False
+# initialize_session_state = None
 
 # Initialize session state variables if they don't exist
 if 'currentPage' not in st.session_state:
@@ -627,13 +643,16 @@ elif st.session_state.currentPage == 2:
   with col2:
     if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
       next_page()
-      initialize_session_state = False  
+      if 'recomendacao_gerada' in st.session_state:
+        del st.session_state['recomendacao_gerada'] 
+      if 'recomendacao_texto' in st.session_state:
+        del st.session_state['recomendacao_texto']
       
 
 
 # --- Page 3: Idea Description ---
 elif st.session_state.currentPage == 3:
-  if initialize_session_state == False:
+  if 'recomendacao_gerada' not in st.session_state:
     # Monta o formulário com as respostas do usuário
     formulario = f"""
     **Natureza da Ideia**
@@ -650,12 +669,14 @@ elif st.session_state.currentPage == 3:
     Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
     """
     with st.spinner("Analisando as respostas do formulário..."):
-        recomendacao = agente_recomendador(formulario)
-    initialize_session_state = True
+      recomendacao = agente_recomendador(formulario)
+    
+    st.session_state['recomendacao_texto'] = recomendacao
+    st.session_state['recomendacao_gerada'] = True
 
   with st.expander("🔔 Clique para ver a recomendação de protejer sua ideia 🔔", expanded=False):
     st.markdown("#### Recomendação do Assistente")
-    st.write(recomendacao)
+    st.write(st.session_state['recomendacao_texto'])
 
   st.title("Descreva Sua Ideia")
   st.write("Descreva sua ideia em detalhes para ser feita uma análise mais objetiva. Os campos marcados com * são obrigatórios.")

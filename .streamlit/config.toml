@@ -1,0 +1,22 @@
+[theme]
+# Cor principal (Botões, links, ícones de toggle) - Um dos azuis mais claros/verdes da identidade
+primaryColor = "#00AEEF" # Um azul vibrante do menu superior/links
+
+# Cor de fundo da página principal (Branco da imagem)
+backgroundColor = "#FFFFFF"
+
+# Cor de fundo da barra lateral e alguns widgets (pode ser o branco também ou um cinza bem claro para contraste)
+secondaryBackgroundColor = "#F7F7F7" # Quase branco, para sutil diferenciação se houver sidebar
+
+# Cor do texto principal (Preto/cinza escuro da imagem)
+textColor = "#262626" # Um cinza bem escuro, próximo ao preto
+
+# Fontes (sans-serif para seguir o estilo limpo)
+font = "sans serif"
+# Você também pode adicionar uma imagem de fundo aqui, mas é mais flexível com CSS.
+# Exemplo de como seria (mas veja a seção de CSS para melhor controle):
+# [browser]
+# background = "url('https://example.com/sua_imagem.jpg')"
+# backgroundSize = "cover"
+# backgroundPosition = "center center"
+# backgroundRepeat = "no-repeat"

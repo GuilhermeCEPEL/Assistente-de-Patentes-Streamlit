@@ -493,6 +493,9 @@ def show_form(title, questions):
     elif response == 'Não':
       st.session_state.questionsData[q['id']] = False
 
+  # Add a divider line after the section
+  st.markdown("---")
+
 def analise_dos_resultados(repostas_descritivas, formulario):
   # Use a placeholder container for temporary info messages
   info_placeholder = st.empty()
@@ -528,9 +531,9 @@ st.markdown(
     """
     <style>
     .stApp {
-        /*background: linear-gradient(to right, #e0f7fa, #bbdefb); /* Degradê do azul claro para o azul médio */
+        /* background: linear-gradient(to right, #009E49, #00AEEF); /* Degradê do azul claro para o azul médio */
         background: linear-gradient(to bottom, #009E49, #00AEEF); */ /* Exemplo de degradê amarelo para laranja */
-        /* background: radial-gradient(circle, #ADD8E6, #87CEEB); */ /* Exemplo de degradê radial */
+        /* background: radial-gradient(circle,  #009E49, #00AEEF); */ /* Exemplo de degradê radial */
     }
     </style>
     """,

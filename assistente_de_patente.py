@@ -227,21 +227,28 @@ def agente_revisor(topico):
   agente = Agent(
     name="agente_revisor",
     model="gemini-2.5-flash-preview-05-20",
-    description="Agente que irá revisar a busca feita por outro agente e verificar se a busca foi completa",
+    description="Agente que irá revisar a busca feita por outro agente e verificar se as informações da busca estão corretas",
     tools=[google_search],
     instruction="""
-    O seu trabalho será revisar uma lista de propriedades intelectuais (PI) que foram buscadas por outro agente. O agente irá lhe informar uma lista de PIs que foram encontradas,
-    e você deve analisar se os itens dessa lista realmente existem, se as informações descritas estão coerentes com a PI E, se necessário, atualizar elas informações da lista.
-    
-    Você deve verificar se as PIs estão completas, se os links estão corretos e se as informações estão em conformidade com a PI encontrada. Caso o link não esteja correto ou seja um
-    link gerado como exemplo, você deve buscar o link correto e atualizar a PI na lista final. Caso encontre alguma PI que não esteja completa ou com informações
-    incorretas, você deve corrigir as informações e adicionar a PI corrigida na lista final.
+      Como Agente Revisor, sua função é garantir a precisão e integridade dos dados de Propriedades Intelectuais (PIs) coletados
+      pelo Agente Buscador.
 
-    Caso a PI analisada não possa ser encontrada, remova ela da lista final.
+      Você receberá uma lista de PIs encontradas e deverá realizar uma verificação minuciosa de cada item, com os seguintes critérios:
 
-    A partir da nova lista final, reavalie as conclusões e análises feitas pelo agente buscador e reescreva-as.
+      - Coerência da Informação: Analise se os dados descritos para cada PI (título, resumo, inventores, etc.) correspondem de forma 
+      exata e completa ao conteúdo da própria PI.
+      - Validade e Correção dos Links: Confirme se os links fornecidos são válidos, funcionais e direcionam diretamente para a PI 
+      correspondente. Links incorretos, quebrados ou gerados como exemplo devem ser substituídos pelo link oficial e correto da PI.
+      - Completude dos Dados: Verifique se todas as informações essenciais da PI estão presentes na lista. PIs incompletas devem 
+      ser corrigidas e complementadas com os dados ausentes.
 
-    Além disso, quando fizer o resultado, não precisa se introduzir.
+      Ações a serem tomadas:
+
+      - Correção: Inconsistências, links errados e informações incompletas devem ser corrigidos e atualizados diretamente na lista 
+      de PIs.
+      - Remoção: PIs que não puderem ser encontradas ou verificadas através dos links fornecidos devem ser removidas da lista final.
+      Após a revisão e correção da lista de PIs, sua tarefa final será reavaliar e reescrever as conclusões e análises previamente 
+      elaboradas pelo Agente Buscador, assegurando que elas reflitam precisamente a nova lista de PIs validada e corrigida.
     """
   )
 
@@ -401,43 +408,6 @@ def agente_avaliador(topico):
 
   return resultado_do_agente 
 
-def exibir_resultado(titulo, conteudo):
-  st.info(f"\n{titulo}")
-  st.info("=" * 40)
-  st.info(textwrap.indent(conteudo, '  '))
-  st.info("=" * 40)
-
-# def pesquisar_patentes(descricao: str):
-#   """
-#   Realiza a busca em bancos de dados de patentes e retorna os resultados dos agentes separadamente.
-#   """
-#   st.info("🔎 Realizando pesquisa em bancos de dados de patentes... Por favor, aguarde.")
-#   # time.sleep(3) # Simula um atraso de rede/processamento
-
-#   if not descricao.strip():
-#     return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
-#   else:
-#     st.info("\n[1/3] Buscando patentes similares...")
-#     patentes_identificadas = agente_buscador(descricao)
-
-#     st.info("\n[2/3] Resumindo patentes encontradas...")
-#     resumo_de_patentes = agente_resumidor(patentes_identificadas)
-
-#     st.info("\n[3/3] Sugerindo inovações possíveis...")
-#     sugestoes_identificadas = agente_sugestor(resumo_de_patentes)
-
-#     return (patentes_identificadas, resumo_de_patentes, sugestoes_identificadas)
-
-# def gerar_formulario_patente_inpi(descricao: str) -> str:
-#   st.info("📄 Gerando formulário de patente no formato INPI... Por favor, aguarde.")
-
-#   if not descricao.strip():
-#     return "⚠️ A descrição da patente não pode estar vazia para gerar o formulário."
-#   else:  
-#     st.info("\nGerando formulário com base na descrição fornecida...")
-#     descricao_formatada = agente_formatador(descricao)
-#     return descricao_formatada
-
 # Function to navigate to the next page
 def next_page():
     st.session_state.currentPage += 1
@@ -448,25 +418,38 @@ def prev_page():
 
 # Function to save data to a CSV file
 def save_data_to_csv(user_data, questions_data, idea_text):
-    # Combine all data into a single dictionary
-    combined_data = {
-        'Nome': user_data['name'],
-        'Matricula': user_data['matricula'],
-        'Email': user_data['email'],
-        'Ideia_Algoritmo_Matematico': 'Sim' if questions_data['q1'] else 'Não' if questions_data['q1'] is not None else '',
-        'Ideia_Metodologia': 'Sim' if questions_data['q2'] else 'Não' if questions_data['q2'] is not None else '',
-        'Ideia_Software_Puro': 'Sim' if questions_data['q3'] else 'Não' if questions_data['q3'] is not None else '',
-        'Ideia_Resolve_Problema_Tecnico': 'Sim' if questions_data['q4'] else 'Não' if questions_data['q4'] is not None else '',
-        'Solucao_Nova': 'Sim' if questions_data['q5'] else 'Não' if questions_data['q5'] is not None else '',
-        'Solucao_Inventiva': 'Sim' if questions_data['q6'] else 'Não' if questions_data['q6'] is not None else '',
-        'Tem_Aplicacao_Industrial': 'Sim' if questions_data['q7'] else 'Não' if questions_data['q7'] is not None else '',
-        'Descricao_Ideia': idea_text
-    }
-    # Create a DataFrame from the combined data
-    df = pd.DataFrame([combined_data])
-    # Convert DataFrame to CSV string
-    csv_string = df.to_csv(index=False, encoding='utf-8')
-    return csv_string
+  # Combine all data into a single dictionary
+  combined_data = {
+    'Nome': user_data['name'],
+    'Matricula': user_data['matricula'],
+    'Email': user_data['email'],
+    # Page 2: All formulary questions
+    'Ideia_Algoritmo_Matematico': 'Sim' if questions_data['q1'] else 'Não' if questions_data['q1'] is not None else '',
+    'Ideia_Metodologia': 'Sim' if questions_data['q2'] else 'Não' if questions_data['q2'] is not None else '',
+    'Ideia_Software_Puro': 'Sim' if questions_data['q3'] else 'Não' if questions_data['q3'] is not None else '',
+    'Ideia_Resolve_Problema_Tecnico': 'Sim' if questions_data['q4'] else 'Não' if questions_data['q4'] is not None else '',
+    'Solucao_Nova': 'Sim' if questions_data['q5'] else 'Não' if questions_data['q5'] is not None else '',
+    'Solucao_Inventiva': 'Sim' if questions_data['q6'] else 'Não' if questions_data['q6'] is not None else '',
+    'Tem_Aplicacao_Industrial': 'Sim' if questions_data['q7'] else 'Não' if questions_data['q7'] is not None else '',
+    'Ideia_Divulgada_Publicamente': 'Sim' if questions_data['q8'] else 'Não' if questions_data['q8'] is not None else '',
+    'Intencao_Comercializar': 'Sim' if questions_data['q9'] else 'Não' if questions_data['q9'] is not None else '',
+    'Protótipo_Ou_MVP': 'Sim' if questions_data['q10'] else 'Não' if questions_data['q10'] is not None else '',
+    # Page 3: All descriptions
+    'Descricao_Ideia': st.session_state.get('ideaText_main', ''),
+    'Diferencial_Ideia': st.session_state.get('ideaText_differential', ''),
+    'Desenvolvimento_Relacionado': st.session_state.get('ideaText_dev', ''),
+    'Setor_Aplicacao': st.session_state.get('ideaText_sector', ''),
+    # Page 3: Recommendation generated
+    'Recomendacao_Protecao': st.session_state.get('recomendacao_texto', ''),
+    # Page 4: Results
+    'Resultado_Analise_PI': st.session_state.get('resultado_da_busca', ''),
+    'Resultado_Avaliacao': st.session_state.get('resultado_da_avaliacao', ''),
+  }
+  # Create a DataFrame from the combined data
+  df = pd.DataFrame([combined_data])
+  # Convert DataFrame to CSV string with BOM for Excel compatibility
+  csv_string = df.to_csv(index=False, encoding='utf-8-sig')
+  return csv_string
 
 def show_form(title, questions):
   st.write("**{}**".format(title))
@@ -517,7 +500,7 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     info_placeholder.empty()  # Remove the info message after processing
     return (resultado_da_revisao, resultado_da_avaliacao)
 
-
+###################################################################################
 
 st.set_page_config(
   page_title="InovaFacil",
@@ -568,11 +551,11 @@ if 'questionsData' not in st.session_state:
 if 'ideaText' not in st.session_state:
     st.session_state.ideaText = ''
 
+###################################################################################
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
   st.title("💡 InovaFacil - Guia de Ideias")
   st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
-
 
   st.title("Suas Informações")
   st.write("Por favor, preencha seus dados para continuar.")
@@ -608,6 +591,7 @@ if st.session_state.currentPage == 1:
   if st.button("Próxima Página", key="prox_page_button_1", disabled=not is_user_data_complete):
     next_page()
 
+###################################################################################
 # --- Page 2: Yes/No Questions ---
 elif st.session_state.currentPage == 2:
   st.title("Perguntas de Sim ou Não")
@@ -652,7 +636,7 @@ elif st.session_state.currentPage == 2:
         del st.session_state['recomendacao_texto']
       
 
-
+###################################################################################
 # --- Page 3: Idea Description ---
 elif st.session_state.currentPage == 3:
   if 'recomendacao_gerada' not in st.session_state:
@@ -722,6 +706,11 @@ elif st.session_state.currentPage == 3:
   with col2:
     if st.button("Próxima Página", key="prox_page_button_3", disabled=not are_questions_complete):
       next_page()
+      if 'resultado_da_avaliacao' in st.session_state:
+        del st.session_state['resultado_da_avaliacao'] 
+      if 'resultado_da_busca' in st.session_state:
+        del st.session_state['resultado_da_busca']
+      
 
 # --- Page 4: Idea Description ---
 elif st.session_state.currentPage == 4:
@@ -748,17 +737,22 @@ elif st.session_state.currentPage == 4:
   Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
   """
 
-  # st.write(formulario)
-
-  with st.spinner("Pesquisando..."):
-    resultado_da_busca, resultado_da_avaliacao = analise_dos_resultados(repostas_descritivas, formulario)
+  # Só executa a análise se ainda não estiver salva no session_state
+  if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state:
+    with st.spinner("Pesquisando..."):
+      resultado_da_busca, resultado_da_avaliacao = analise_dos_resultados(repostas_descritivas, formulario)
+    st.session_state['resultado_da_busca'] = resultado_da_busca
+    st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
+  else:
+    resultado_da_busca = st.session_state['resultado_da_busca']
+    resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']
 
   # Separa o resultado_da_avaliacao em título e texto usando o primeiro '\n'
   if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
-      titulo, texto = resultado_da_avaliacao.split('\n', 1)
+    titulo, texto = resultado_da_avaliacao.split('\n', 1)
   else:
-      titulo = resultado_da_avaliacao if resultado_da_avaliacao else "Resultado não disponível"
-      texto = ""
+    titulo = resultado_da_avaliacao if resultado_da_avaliacao else "Resultado não disponível"
+    texto = ""
 
   st.title(titulo)
   st.write(texto)
@@ -768,232 +762,18 @@ elif st.session_state.currentPage == 4:
     st.markdown("#### Análise de Propriedades Similares")
     st.write(resultado_da_busca)
 
-    
-  # st.title("Descreva Sua Ideia")
-  # st.write("Por favor, descreva sua ideia em detalhes.")
-
-  # Text area for idea description
-  # st.session_state.ideaText = st.text_area(
-  #     "Sua Ideia:",
-  #     value=st.session_state.ideaText,
-  #     height=250
-  # )
-
   col1, col2 = st.columns(2)
   with col1:
-      if st.button("Voltar", key="prev_page_button_3"):
-          prev_page()
+    if st.button("Voltar", key="prev_page_button_4"):
+      prev_page()
+
   with col2:
-      if st.button("Finalizar Formulário", key="finish_form_button"):
-          st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
+    csv_string = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaText)
+    st.download_button(
+  label="Clique aqui para baixar o CSV",
+  data=csv_string,
+  file_name="respostas_inovafacil.csv",
+  mime="text/csv"
+    )
+    st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
 
-
-# st.title("💡 Assistente de Ideias")
-# st.markdown("Bem-vindo ao seu assistente pessoal para gerenciar ideias.")
-
-# # Inicializa 'pagina' se ainda não existir na sessão
-# if 'pagina' not in st.session_state:
-#   st.session_state['pagina'] = '0'
-
-# if st.session_state['pagina'] == '0':
-#   # Campos para nome, matrícula e email do usuário
-#   st.subheader("👤 Dados do Usuário")
-#   col_nome, col_matricula, col_email = st.columns(3)
-#   with col_nome:
-#       nome_usuario = st.text_input("Nome completo", key="nome_usuario")
-#   with col_matricula:
-#       matricula_usuario = st.text_input("Matrícula", key="matricula_usuario")
-#   with col_email:
-#       email_usuario = st.text_input("E-mail", key="email_usuario")
-  
-#   # Botão para avançar para a próxima página (disponível apenas se nome, matrícula e email estiverem preenchidos)
-#   if nome_usuario.strip() and matricula_usuario.strip() and email_usuario.strip():
-#     if st.button("➡️ Avançar para a próxima página", type="primary"):
-#       st.session_state['pagina'] = '1'
-
-
-
-          # st.experimental_rerun() # Normalmente não é necessário se a lógica de exibição estiver bem definida
-
-# if st.session_state['pagina'] == '1':
-#   # Adiciona 7 toggle switches no topo da interface
-#   st.markdown("### Identificação inicial da ideia")
-#   st.markdown(
-#       "Responda **Sim** ou **Não** para cada pergunta abaixo, usando os botões deslizantes (toggle):"
-#   )
-#   col_tog1 = st.columns(1)
-#   with col_tog1[0]:
-#     toggle1 = st.toggle("A ideia é apenas um algoritmo isolado ou método matemático?", key="toggle1")
-#     toggle2 = st.toggle("A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?", key="toggle2")
-#     toggle3 = st.toggle("A ideia é puramente software (sem aplicação técnica específica)?", key="toggle3")
-#     toggle4 = st.toggle("A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?", key="toggle4")
-#     toggle5 = st.toggle("A solução é nova? (Não existe algo igual já divulgado ou patenteado?)", key="toggle5")
-#     toggle6 = st.toggle("A solução é inventiva? (Não é óbvia para um técnico no assunto?)", key="toggle6")
-#     toggle7 = st.toggle("Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)", key="toggle7")  
-
-#     if st.button("➡️ Avançar para a próxima página", type="primary"):
-#       st.session_state['pagina'] = '2'
-
-#       formulario = """
-#       A ideia é apenas um algoritmo isolado ou método matemático: {}
-#       A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {}
-#       A ideia é puramente software (sem aplicação técnica específica): {}
-#       A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {}
-#       A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {}
-#       A solução é inventiva? (Não é óbvia para um técnico no assunto?): {}
-#       Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {}
-#       """.format(toggle1, toggle2, toggle3, toggle4, toggle5, toggle6, toggle7)
-
-#       recomendacao = agente_buscador(formulario)
-    
-#       # Exibe a recomendação de forma mais destacada e organizada
-#       with st.expander("🔔 Clique para ver a recomendação sobre sua ideia", expanded=True):
-#         st.markdown("#### Recomendação do Assistente")
-#         st.write(recomendacao)
-
-
-
-# # Lógica para navegação de páginas
-# elif st.session_state.get('pagina') == '2':
-#   st.markdown("## Página 2: Conteúdo Adicional")
-  
-#   if st.button("⬅️ Retornar para a página anterior", type="primary"):
-#     st.session_state['pagina'] = '0'
-
-#   # Campo de texto para a descrição da patente
-#   st.subheader("📝 Descrição da Patente")
-#   descricao_patente = st.text_area(
-#     "Insira aqui a descrição detalhada da sua invenção ou modelo de utilidade:",
-#     height=250,
-#     help="Descreva sua ideia com o máximo de detalhes possível, incluindo o problema que ela resolve, como funciona, suas características e vantagens.",
-#     key="descricao_patente_input" # Adicionado key para gerenciar o estado
-#   )
-
-#   # Inicializa as variáveis de resultado no session_state para persistência
-#   if 'resultado_pesquisa' not in st.session_state:
-#     st.session_state.resultado_pesquisa = ""
-#   if 'resultado_resumo' not in st.session_state:
-#     st.session_state.resultado_resumo = ""
-#   if 'resultado_sugestoes' not in st.session_state:
-#     st.session_state.resultado_sugestoes = ""
-#   if 'formulario_patente' not in st.session_state:
-#     st.session_state.formulario_patente = ""
-#   if 'descricao_patente' not in st.session_state:
-#     st.session_state.descricao_patente = "" # Para persistir a descrição entre as execuções
-#   # if 'ultima_acao' not in st.session_state:
-#   #   st.session_state.ultima_acao = None
-
-#   # Atualiza a descrição no session_state quando o text_area muda
-#   if descricao_patente != st.session_state.descricao_patente:
-#     st.session_state.descricao_patente = descricao_patente
-#     # Limpa resultados anteriores se a descrição mudar significativamente
-#     st.session_state.resultado_pesquisa = ("", "", "")
-#     st.session_state.formulario_patente = ""
-
-#   st.markdown("---") # Divisor visual
-
-#   # Botões de ação
-#   col1, col2 = st.columns(2)
-
-#   with col1:
-#     if st.button("🔎 Pesquisar Patentes Similares", type="primary", use_container_width=True):
-#       if st.session_state.descricao_patente.strip():
-#         with st.spinner("Pesquisando..."):
-#           patentes, resumo, sugestoes = pesquisar_patentes(st.session_state.descricao_patente)
-#           st.session_state.resultado_pesquisa = patentes
-#           st.session_state.resultado_resumo = resumo
-#           st.session_state.resultado_sugestoes = sugestoes
-#           # st.session_state.ultima_acao = "pesquisa"
-#       else:
-#         st.warning("Por favor, insira uma descrição da patente para pesquisar.")
-
-#   with col2:
-#     if st.button("📄 Gerar Formulário de Patente (INPI)", type="secondary", use_container_width=True):
-#       if st.session_state.descricao_patente.strip():
-#         with st.spinner("Gerando formulário..."):
-#           st.session_state.formulario_patente = gerar_formulario_patente_inpi(st.session_state.descricao_patente)
-#           # st.session_state.ultima_acao = "formulario" 
-#       else:
-#         st.warning("Por favor, insira uma descrição da patente para gerar o formulário.")
-
-#   st.markdown("---") # Divisor visual
-
-#   # Área para os outputs
-#   st.subheader("Resultado")
-
-#   # Botão para baixar o resultado completo da pesquisa (três agentes)
-#   if (
-#       st.session_state.resultado_pesquisa
-#       and st.session_state.resultado_resumo
-#       and st.session_state.resultado_sugestoes
-#   ):
-#       conteudo_download = (
-#           "===== RESULTADO DA PESQUISA DE PATENTES =====\n\n"
-#           f"{st.session_state.resultado_pesquisa}\n\n"
-#           "===== RESUMO DAS PATENTES E SIMILARIDADES =====\n\n"
-#           f"{st.session_state.resultado_resumo}\n\n"
-#           "===== SUGESTÕES DE INOVAÇÕES =====\n\n"
-#           f"{st.session_state.resultado_sugestoes}\n"
-#       )
-#       st.download_button(
-#           label="Download Resultado Completo da Pesquisa (.txt)",
-#           data=conteudo_download,
-#           file_name="resultado_completo_pesquisa_patentes.txt",
-#           mime="text/plain",
-#           help="Clique para baixar todos os resultados dos agentes em um único arquivo.",
-#           type="primary",
-#           key="download_pesquisa_1"  # <-- Adicione um key único aqui
-#       )
-#       st.success("✅ Pesquisa Concluída!")
-
-#   if st.session_state.resultado_pesquisa:
-#     st.text_area("1️⃣ Resultado da Pesquisa de Patentes:",
-#           value=st.session_state.resultado_pesquisa,
-#           height=200,
-#           key="output_pesquisa",
-#           help="Resultados da busca por patentes similares à sua descrição.")
-
-#   if st.session_state.resultado_resumo:
-#     st.text_area("2️⃣ Resumo das Patentes e Similaridades:",
-#           value=st.session_state.resultado_resumo,
-#           height=200,
-#           key="output_resumo",
-#           help="Resumo das patentes similares encontradas.")
-
-#   if st.session_state.resultado_sugestoes:
-#     st.text_area("3️⃣ Sugestões de Inovações:",
-#           value=st.session_state.resultado_sugestoes,
-#           height=200,
-#           key="output_sugestoes",
-#           help="Sugestões de inovações possíveis para sua patente.")
-
-
-#   # Output do Formulário
-#   if st.session_state.formulario_patente:
-#     st.success("✅ Formulário Gerado!")
-#     st.download_button(
-#       label="Download Formulário (.txt)",
-#       data=st.session_state.formulario_patente,
-#       file_name="formulario_patente_inpi.txt",
-#       mime="text/plain",
-#       help="Clique para baixar o formulário gerado em formato de texto.",
-#       type="secondary"
-#     )
-#     st.text_area("Formulário de Patente INPI (Simulado):",
-#           value=st.session_state.formulario_patente,
-#           height=600,
-#           key="output_formulario",
-#           help="Formulário de patente gerado. Lembre-se que este é um modelo simulado.")
-
-#   st.stop()
-
-
-# st.markdown("""
-# ---
-# ### Como funciona?
-# Este aplicativo ajuda você a:
-# 1. **Pesquisar Patentes:** Insira uma descrição da sua invenção e o sistema simulará a busca por patentes já existentes.
-# 2. **Gerar Formulário:** Com base na sua descrição, um modelo simplificado de formulário de patente no padrão INPI será gerado.
-
-# **Importante:** Esta é uma aplicação demonstrativa. Para processos reais de patenteamento, consulte um advogado especializado e os guias oficiais do INPI.
-# """)

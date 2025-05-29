@@ -1,167 +1,98 @@
 import streamlit as st
-import pandas as pd
-import io
 
-# Initialize session state variables if they don't exist
-if 'currentPage' not in st.session_state:
-    st.session_state.currentPage = 1
-if 'userData' not in st.session_state:
-    st.session_state.userData = {
-        'name': '',
-        'matricula': '',
-        'email': '',
+# Configuração da página
+st.set_page_config(
+    page_title="InovaFacil",
+    page_icon="💡",
+    layout="wide",
+    initial_sidebar_state="auto"
+)
+
+# Estilo personalizado
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Poppins', sans-serif;
     }
-if 'questionsData' not in st.session_state:
-    st.session_state.questionsData = {
-        'q1': None, # A ideia é apenas um algoritmo isolado ou método matemático
-        'q2': None, # A ideia é uma metodologia de ensino, gestão, negócios ou treinamento
-        'q3': None, # A ideia é puramente software (sem aplicação técnica específica)
-        'q4': None, # A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?
-        'q5': None, # A solução é nova? (Não existe algo igual já divulgado ou patenteado?)
-        'q6': None, # A solução é inventiva? (Não é óbvia para um técnico no assunto?)
-        'q7': None, # Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)
+
+    .stApp {
+        background: linear-gradient(to bottom, #009E49, #00AEEF);
+        background-attachment: fixed;
+        color: white;
     }
-if 'ideaText' not in st.session_state:
-    st.session_state.ideaText = ''
 
-# Function to navigate to the next page
-def next_page():
-    st.session_state.currentPage += 1
-
-# Function to navigate to the previous page
-def prev_page():
-    st.session_state.currentPage -= 1
-
-# Function to save data to a CSV file
-def save_data_to_csv(user_data, questions_data, idea_text):
-    # Combine all data into a single dictionary
-    combined_data = {
-        'Nome': user_data['name'],
-        'Matricula': user_data['matricula'],
-        'Email': user_data['email'],
-        'Ideia_Algoritmo_Matematico': 'Sim' if questions_data['q1'] else 'Não' if questions_data['q1'] is not None else '',
-        'Ideia_Metodologia': 'Sim' if questions_data['q2'] else 'Não' if questions_data['q2'] is not None else '',
-        'Ideia_Software_Puro': 'Sim' if questions_data['q3'] else 'Não' if questions_data['q3'] is not None else '',
-        'Ideia_Resolve_Problema_Tecnico': 'Sim' if questions_data['q4'] else 'Não' if questions_data['q4'] is not None else '',
-        'Solucao_Nova': 'Sim' if questions_data['q5'] else 'Não' if questions_data['q5'] is not None else '',
-        'Solucao_Inventiva': 'Sim' if questions_data['q6'] else 'Não' if questions_data['q6'] is not None else '',
-        'Tem_Aplicacao_Industrial': 'Sim' if questions_data['q7'] else 'Não' if questions_data['q7'] is not None else '',
-        'Descricao_Ideia': idea_text
+    h1, h2, h3, h4 {
+        color: white !important;
     }
-    # Create a DataFrame from the combined data
-    df = pd.DataFrame([combined_data])
-    # Convert DataFrame to CSV string
-    csv_string = df.to_csv(index=False, encoding='utf-8')
-    return csv_string
 
-# --- Page 1: User Information ---
-if st.session_state.currentPage == 1:
-    st.title("Suas Informações")
-    st.write("Por favor, preencha seus dados para continuar.")
+    .card {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        margin-bottom: 20px;
+    }
 
-    # Input fields for user data
-    st.session_state.userData['name'] = st.text_input("Nome:", value=st.session_state.userData['name'])
-    st.session_state.userData['matricula'] = st.text_input("Matrícula:", value=st.session_state.userData['matricula'])
-    st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'])
+    .stButton button {
+        background-color: #ffffff;
+        color: #009E49;
+        border-radius: 8px;
+        padding: 0.5em 2em;
+        font-weight: bold;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
 
-    # Check if all user data fields are filled
-    is_user_data_complete = all(st.session_state.userData.values())
+    .stButton button:hover {
+        background-color: #00AEEF;
+        color: white;
+    }
 
-    # "Next Page" button
-    if st.button("Próxima Página", disabled=not is_user_data_complete):
-        next_page()
+    .divider {
+        height: 1px;
+        background-color: rgba(255,255,255,0.3);
+        margin: 30px 0;
+    }
 
-# --- Page 2: Yes/No Questions ---
-elif st.session_state.currentPage == 2:
-    st.title("Perguntas de Sim ou Não")
-    st.write("Por favor, responda às seguintes perguntas:")
+    </style>
+""", unsafe_allow_html=True)
 
-    # Adicione uma mensagem para o usuário
-    st.info("💡 **Atenção:** Após responder a todas as perguntas, clique no botão 'Próxima Página' para continuar.")
+# Conteúdo principal
+st.markdown("<h1 style='text-align: center;'>Bem-vindo à InovaFácil 💡</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Transformando suas ideias em inovação real.</p>", unsafe_allow_html=True)
 
-    questions = [
-        {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
-        {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
-        {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
-        {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
-        {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
-        {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
-        {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
-    ]
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    # Display each question with radio buttons
-    for q in questions:
-        # Determine the default index for the radio button based on current state
-        default_index = None # Default to no selection
-        if st.session_state.questionsData[q['id']] is True:
-            default_index = 0 # 'Sim'
-        elif st.session_state.questionsData[q['id']] is False:
-            default_index = 1 # 'Não'
-        elif st.session_state.questionsData[q['id']] is None:
-            default_index = None
+# Seção de serviços
+st.markdown('<h2>Nossos Serviços</h2>', unsafe_allow_html=True)
 
-        response = st.radio(
-            q['text'],
-            ('Sim', 'Não'),
-            key=q['id'], # Unique key for each radio button
-            index=default_index # Set initial selection
-        )
-        # Update session state based on user's selection
-        if response == 'Sim':
-            st.session_state.questionsData[q['id']] = True
-        elif response == 'Não':
-            st.session_state.questionsData[q['id']] = False
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown('<div class="card"><h4>💼 Consultoria em Inovação</h4><p>Guiamos você em cada etapa com expertise e visão estratégica.</p></div>', unsafe_allow_html=True)
+with col2:
+    st.markdown('<div class="card"><h4>🧪 Desenvolvimento de Produtos</h4><p>Transformamos ideias em soluções tangíveis, sob medida.</p></div>', unsafe_allow_html=True)
+with col3:
+    st.markdown('<div class="card"><h4>📚 Capacitação e Treinamento</h4><p>Empodere sua equipe com conhecimento prático e atual.</p></div>', unsafe_allow_html=True)
 
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    # Check if all questions are answered
-    are_questions_complete = all(value is not None for value in st.session_state.questionsData.values())
+# Contato e Localização
+contato_col, local_col = st.columns(2)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Página Anterior"):
-            prev_page()
-    with col2:
-        if st.button("Próxima Página 3", disabled=not are_questions_complete):
-            next_page()
+with contato_col:
+    st.subheader("Fale Conosco")
+    nome = st.text_input("Seu Nome")
+    mensagem = st.text_area("Sua Mensagem")
+    if st.button("Enviar"):
+        if nome.strip() and mensagem.strip():
+            st.success(f"✅ Obrigado, {nome}! Sua mensagem foi enviada com sucesso.")
+        else:
+            st.error("⚠️ Por favor, preencha todos os campos antes de enviar.")
 
-# --- Page 3: Idea Description ---
-elif st.session_state.currentPage == 3:
-    st.title("Descreva Sua Ideia")
-    st.write("Por favor, descreva sua ideia em detalhes.")
+with local_col:
+    st.subheader("Localização")
+    st.write("📍 Estamos em São José, Santa Catarina.")
+    st.image("https://via.placeholder.com/400x250?text=Mapa+aqui", caption="Nosso Escritório")
 
-    # Text area for idea description
-    st.session_state.ideaText = st.text_area(
-        "Sua Ideia:",
-        value=st.session_state.ideaText,
-        height=250
-    )
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Página Anterior"):
-            prev_page()
-    with col2:
-        if st.button("Finalizar Formulário"):
-            st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
-            st.write("---")
-            st.subheader("Dados Coletados:")
-            st.write("**Informações do Usuário:**")
-            st.json(st.session_state.userData)
-            st.write("**Respostas das Perguntas:**")
-            st.json(st.session_state.questionsData)
-            st.write("**Texto da Ideia:**")
-            st.write(st.session_state.ideaText)
-
-            # Generate CSV data
-            csv_data = save_data_to_csv(
-                st.session_state.userData,
-                st.session_state.questionsData,
-                st.session_state.ideaText
-            )
-            # Create a download button for the CSV file
-            st.download_button(
-                label="Baixar Dados do Formulário (CSV)",
-                data=csv_data,
-                file_name="dados_formulario_ideia.csv",
-                mime="text/csv",
-            )

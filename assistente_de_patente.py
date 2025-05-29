@@ -235,10 +235,11 @@ def agente_revisor(topico):
 
       Você receberá uma lista de PIs encontradas e deverá realizar uma verificação minuciosa de cada item, com os seguintes critérios:
 
-      - Coerência da Informação: Analise se os dados descritos para cada PI (título, resumo, inventores, etc.) correspondem de forma 
-      exata e completa ao conteúdo da própria PI.
+      - Coerência da Informação: Analise se os dados descritos para cada PI (título, resumo, inventores, etc.) 
+      correspondem de forma exata e completa ao conteúdo da própria PI.
       - Validade e Correção dos Links: Confirme se os links fornecidos são válidos, funcionais e direcionam diretamente para a PI 
-      correspondente. Links incorretos, quebrados ou gerados como exemplo devem ser substituídos pelo link oficial e correto da PI.
+      correspondente. Links incorretos, quebrados ou gerados como exemplo devem ser substituídos pelo link oficial e correto da PI ou 
+      uma justificativa de porque não foi possível obter o link.
       - Completude dos Dados: Verifique se todas as informações essenciais da PI estão presentes na lista. PIs incompletas devem 
       ser corrigidas e complementadas com os dados ausentes.
 
@@ -270,8 +271,9 @@ def agente_buscador(topico):
     description="Agente que busca se ja existe alguma propriedade intelectual similar a ideia que o usuário quer desenvolver",
     tools=[google_search],
     instruction="""
-    Atuando como um pesquisador de propriedade intelectual (PI), sua responsabilidade é investigar a existência de propriedade intelectual
-    similares àquela que o usuário pretende desenvolver. O usuário irá providenciar uma descrição da ideia ou invenção e responderá as seguintes questões:
+    Atuando como um pesquisador de propriedade intelectual (PI), sua responsabilidade é investigar a existência de propriedade 
+    intelectual similares àquela que o usuário pretende desenvolver. O usuário irá providenciar uma descrição da ideia ou invenção
+    e responderá as seguintes questões:
 
     - Você já desenvolveu algo (protótipo, código, apresentação)?:
     - Qual é o setor de aplicação?:
@@ -282,15 +284,16 @@ def agente_buscador(topico):
     
     Para isso, utilize as ferramentas de busca de propriedades intelectuais como INPI (Registro de programa de computador,
     Busca de Marca Busca Web), Google Patents, PATENTSCOPE, Espacenet, TMView, GitHub, Creative Commons Search, Lens.org,
-    Dewent Innovation, Wayback Machine, Google Scholar, entre outras. A pesquisa deve abranger termos em português e inglês, explorando 
+    Dewent Innovation, Wayback Machine, Google Scholar, entre outras. A pesquisa deve abranger termos em português e inglês, explorando
     sinônimos e palavras relacionadas.
 
     O resultado da sua pesquisa deve conter a descrição da ideia do usuário, seguida divida em duas listas de 
-    patentes relevantes: (1) lista de propriedades intelectuais brasileiras e (2) lista de propriedades intelectuais internacionais. As listas irão
-    conter os seguintes detalhes para cada item: identificador do documento (um número de identificação do documento 
-    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar essa PI (Não gere um link falso ou exemplo, 
-    caso não consiga um link, justifique por que não conseguiu), resumo em português (descrição do que se trata essa PI), comparação (onde será feita uma 
-    análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que podem ser relevantes.
+    patentes relevantes: (1) lista de propriedades intelectuais brasileiras e (2) lista de propriedades intelectuais internacionais.
+    As listas irão conter os seguintes detalhes para cada item: identificador do documento (um número de identificação do documento 
+    único em que o usuário possa se referir como o DOI no caso de um artigo), título da PI, um link para acessar essa PI (Não gere um 
+    link falso ou exemplo, caso não consiga um link, justifique por que não conseguiu), resumo em português (descrição do que se trata
+    essa PI), comparação (onde será feita uma análise comparando a ideia descrita pelo usuário com essa PI) e outras informações que 
+    podem ser relevantes.
 
     Siga o seguinte formato para a listagem no resultado:
 
@@ -318,7 +321,8 @@ def agente_buscador(topico):
         ...
 
 
-    Após listar as propriedades intelectuais, você deve fazer uma conclusão das pesquisas feitas, analisando se a ideia do usuário é original ou não,
+    Após listar as propriedades intelectuais, você deve fazer uma conclusão das pesquisas feitas, analisando se a ideia do usuário 
+    é original ou não, e se é possível tornar essa ideia uma propriedade intelectual.
     
     Além disso, quando fizer o resultado, não precisa se introduzir.
     """
@@ -379,16 +383,20 @@ def agente_avaliador(topico):
     tools=[google_search],
     instruction="""
     Seu papel será avaliar o potencial da ideia do usuário baseado nas análises feitas pelos outros agentes. Seu objetivo será
-    fazer uma avaliação detalhada dos pontos fortes e fracos da ideia, avaliando a possibilidade de tornar a ideia uma propriedade intelectual (PI),
-    considerando as informações fornecidas.
+    fazer uma avaliação detalhada dos pontos fortes e fracos da ideia, avaliando a possibilidade de tornar a ideia uma propriedade
+    intelectual (PI), considerando as informações fornecidas.
 
-    Você deverá gerar uma nota realista de 0 até 10 para o potencial da ideia utilizando a pesquisa de PIs realizada anteriormente seguindo os seguintes critérios:
+    Você deverá gerar uma nota realista de 0 até 10 para o potencial da ideia utilizando a pesquisa de PIs realizada anteriormente
+    seguindo os seguintes critérios:
     - Inovação: A ideia apresenta uma abordagem nova ou uma solução inovadora para um problema existente?
     - Originalidade: A ideia é única e não existem soluções similares disponíveis?
-    - Potencial de Propriedade Intelectual: A ideia tem características que a tornam passível de proteção legal, como patenteabilidade ou registro de software?
-    A nota deve ser uma escala de 0 a 10, onde cada critério deve ser avaliado de 0 a 10, e a nota final será a média aritmética dos critérios avaliados.
+    - Potencial de Propriedade Intelectual: A ideia tem características que a tornam passível de proteção legal, como patenteabilidade 
+    ou registro de software?
+    A nota deve ser uma escala de 0 a 10, onde cada critério deve ser avaliado de 0 a 10, e a nota final será a média aritmética dos
+    critérios avaliados.
 
-    Você deve fornecer um título que resuma a avaliação, as notas para cada critério e um breve justificativa da nota dada para cada critérito.
+    Você deve fornecer um título que resuma a avaliação, as notas para cada critério e um breve justificativa da nota dada para cada
+    critérito.
 
     O resultado deve seguir o seguinte formato:
 
@@ -509,19 +517,62 @@ st.set_page_config(
   initial_sidebar_state="auto"
 )
 
-# CSS para aplicar um degradê linear ao plano de fundo
+# CSS para aplicar o degradê ao plano de fundo e o overlay
 st.markdown(
     """
     <style>
-    .stApp {
-        /* background: linear-gradient(to right, #009E49, #00AEEF); /* Degradê do azul claro para o azul médio */
-        background: linear-gradient(to bottom, #009E49, #00AEEF); */ /* Exemplo de degradê amarelo para laranja */
-        /* background: radial-gradient(circle,  #009E49, #00AEEF); */ /* Exemplo de degradê radial */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Poppins', sans-serif;
     }
+
+    .stApp {
+        background: linear-gradient(to bottom, #009E49, #00AEEF);
+        background-attachment: fixed;
+        color: white;
+    }
+
+    h1, h2, h3, h4 {
+        color: white !important;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        margin-bottom: 20px;
+    }
+
+    .stButton button {
+        background-color: #ffffff;
+        color: #009E49;
+        border-radius: 8px;
+        padding: 0.5em 2em;
+        font-weight: bold;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .stButton button:hover {
+        background-color: #00AEEF;
+        color: white;
+    }
+
+    .divider {
+        height: 1px;
+        background-color: rgba(255,255,255,0.3);
+        margin: 30px 0;
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
+
+# Adicionando o overlay e o contêiner de conteúdo
+
 
 formulario = ""
 # initialize_session_state = None
@@ -554,8 +605,13 @@ if 'ideaText' not in st.session_state:
 ###################################################################################
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
-  st.title("💡 InovaFacil - Guia de Ideias")
-  st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
+  # st.title("💡 InovaFacil - Guia de Ideias")
+  # st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
+
+  st.markdown("<h1 style='text-align: center;'>Bem-vindo à InovaFácil 💡</h1>", unsafe_allow_html=True)
+  st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Transformando suas ideias em inovação real.</p>", unsafe_allow_html=True)
+  
+  st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
   st.title("Suas Informações")
   st.write("Por favor, preencha seus dados para continuar.")
@@ -777,3 +833,4 @@ elif st.session_state.currentPage == 4:
     )
     st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
 
+st.markdown('</div>', unsafe_allow_html=True) # Fecha a div de conteúdo

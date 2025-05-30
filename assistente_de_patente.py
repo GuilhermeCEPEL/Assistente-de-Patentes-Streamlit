@@ -43,52 +43,6 @@ def call_agent(agent: Agent, message_text: str) -> str:
   return final_response
 
 
-
-##########################################
-# --- Agente 2: Refinador de descrição de patentes existentes --- #
-##########################################
-
-def agente_resumidor(topico):
-  buscador = Agent(
-    name="agente_resumidor",
-    model="gemini-2.5-flash-preview-05-20",
-    description="Agente que analisa a descrição de patentes existentes e faz um resumo delas com as similaridades e diferenças em relação a patente que o usuário quer desenvolver",
-    tools=[google_search],
-    instruction="""
-    Você é um especialista em descrição comparativa de patentes, sua função é analisar a patente alvo do usuário em 
-    relação a um conjunto de patentes similares. Seu processo envolve:
-
-    1. Reproduzir a descrição da patente fornecida pelo usuário.
-
-    2. Elaborar resumos concisos das patentes similares, realçando de forma clara e objetiva as características 
-    que se assemelham à invenção descrita pelo usuário.
-
-    O resultado deve seguitar o seguinte formato:
-    **1. Descrição da patente do usuário:**
-
-    ...
-
-    **2. Resumos das patentes similares e suas semelhanças:**
-
-    ...
-
-    Abaixo estão os resumos concisos das patentes identificadas, destacando as características similares à sua proposta:
-
-    
-    Identificador do documento:
-    Título:
-    Resumo da Similaridade:
-
-    Além disso, quando fizer o resultado, não precisa se introduzir.
-    """
-  )
-
-  entrada_do_agente_resumidor = f"Tópico: {topico}"
-  # Executa o agente
-  resultado_do_agente = call_agent(buscador, entrada_do_agente_resumidor)
-
-  return resultado_do_agente 
-
 ##########################################
 # --- Agente 3: Sugestor de inovações --- #
 ##########################################
@@ -102,6 +56,7 @@ def agente_sugestor(topico):
     instruction="""
     Seu papel é o de um catalisador de inovação em propriedade intelectual. Diante da patente do usuário 
     e de um conjunto de patentes similares, seu objetivo é gerar duas categorias de sugestões:
+    
 
     1. dentificar áreas de melhoria: Analisar a patente do usuário em busca de pontos fracos, 
     limitações ou funcionalidades que poderiam ser aprimoradas.
@@ -128,7 +83,7 @@ def agente_sugestor(topico):
 
 def agente_formatador(topico):
   buscador = Agent(
-    name="agente_buscador",
+    name="agente_buscador_de_PI",
     model="gemini-2.5-flash-preview-05-20",
     description="Agente que irá formatar a descrição da patente no formato no INPI",
     tools=[google_search],
@@ -243,7 +198,7 @@ def agente_revisor(topico):
       - Completude dos Dados: Verifique se todas as informações essenciais da PI estão presentes na lista. PIs incompletas devem 
       ser corrigidas e complementadas com os dados ausentes.
 
-      Ações a serem tomadas:
+      Reescreva a lista seguindo as seguintes ações a serem tomadas:
 
       - Correção: Inconsistências, links errados e informações incompletas devem ser corrigidos e atualizados diretamente na lista 
       de PIs.
@@ -264,9 +219,9 @@ def agente_revisor(topico):
 # --- Agente 1: Buscador de Patentes --- #
 ##########################################
 
-def agente_buscador(topico):
+def agente_buscador_de_PI(topico):
   buscador = Agent(
-    name="agente_buscador",
+    name="agente_buscador_de_PI",
     model="gemini-2.5-flash-preview-05-20",
     description="Agente que busca se ja existe alguma propriedade intelectual similar a ideia que o usuário quer desenvolver",
     tools=[google_search],
@@ -319,10 +274,6 @@ def agente_buscador(topico):
         - Título da PI: Plantas sob controle: 
         - Link para Acessar a PI: 
         ...
-
-
-    Após listar as propriedades intelectuais, você deve fazer uma conclusão das pesquisas feitas, analisando se a ideia do usuário 
-    é original ou não, e se é possível tornar essa ideia uma propriedade intelectual.
     
     Além disso, quando fizer o resultado, não precisa se introduzir.
     """
@@ -416,6 +367,37 @@ def agente_avaliador(topico):
 
   return resultado_do_agente 
 
+def agente_analista(topico):
+  agente = Agent(
+    name="agente_analista",
+    model="gemini-2.5-flash-preview-05-20",
+    description="Agente que analisa a lista de propriedades intelectuais e as recomendações feitas pelos outros agentes para fazer uma conclusão final",
+    tools=[google_search],
+    instruction="""
+    Como Agente Analista, sua responsabilidade é sintetizar e interpretar as informações fornecidas pelo Agente Buscador (lista de
+    Propriedades Intelectuais - PIs) e as recomendações do Agente Recomendador. Seu objetivo final é gerar uma conclusão definitiva
+    sobre o potencial de patenteabilidade/proteção da ideia do usuário como Propriedade Intelectual.
+
+    Sua análise deve abranger:
+
+    Originalidade e Novidade: Avaliar a originalidade da ideia do usuário em relação às PIs existentes, determinando se ela é 
+    nova e não óbvia.
+    Viabilidade de Proteção: Concluir se a ideia pode ser efetivamente protegida como Propriedade Intelectual (patente, registro,
+    etc.), justificando a viabilidade ou não.
+    Caminhos e Estratégias: Caso a proteção seja viável, delinear os possíveis caminhos e estratégias para formalizar a ideia como
+    uma PI, incluindo tipos de proteção aplicáveis e etapas iniciais.
+    Adicionalmente, forneça recomendações estratégicas para aprimoramento da ideia, com base em todas as informações e análises 
+    dos agentes anteriores, visando fortalecer seu potencial de proteção ou comercialização.
+    """
+  )
+
+  entrada_do_agente= f"Tópico: {topico}"
+  # Executa o agente
+
+  resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+  return resultado_do_agente 
+
 # Function to navigate to the next page
 def next_page():
     st.session_state.currentPage += 1
@@ -496,17 +478,20 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     info_placeholder.empty()  # Remove the info message
     return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
   else:
-    info_placeholder.info("\n[1/3] Buscando patentes similares...")
-    resultado_da_busca = agente_buscador(f"{repostas_descritivas}\n\n{formulario}")
+    info_placeholder.info("\n[1/4] Buscando patentes similares...")
+    resultado_da_busca = agente_buscador_de_PI(f"{repostas_descritivas}\n\n{formulario}")
 
-    info_placeholder.info("\n[2/3] Revisando a lista de PIs encontradas...")
-    resultado_da_revisao = agente_buscador(resultado_da_busca)
+    info_placeholder.info("\n[2/4] Revisando a lista de propriedades intelectuais encontradas...")
+    resultado_da_revisao = agente_revisor(resultado_da_busca)
 
-    info_placeholder.info("\n[3/3] Avaliando os resultados...")
+    info_placeholder.info("\n[3/4] Avaliando os resultados...")
     resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
 
+    info_placeholder.info("\n[4/4] Analisando a lisa e a avaliação...")
+    resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n{resultado_da_avaliacao}")
+
     info_placeholder.empty()  # Remove the info message after processing
-    return (resultado_da_revisao, resultado_da_avaliacao)
+    return (resultado_da_revisao, resultado_da_avaliacao, resultado_da_analise)
 
 ###################################################################################
 
@@ -555,6 +540,15 @@ st.markdown(
         transition: background-color 0.3s ease;
     }
 
+    .stButton download_button {
+        background-color: #ffffff;
+        color: #009E49;
+        border-radius: 8px;
+        padding: 0.5em 2em;
+        font-weight: bold;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
     .stButton button:hover {
         background-color: #00AEEF;
         color: white;
@@ -766,6 +760,8 @@ elif st.session_state.currentPage == 3:
         del st.session_state['resultado_da_avaliacao'] 
       if 'resultado_da_busca' in st.session_state:
         del st.session_state['resultado_da_busca']
+      if 'resultado_da_analise' in st.session_state:
+        del st.session_state['resultado_da_analise']
       
 
 # --- Page 4: Idea Description ---
@@ -796,12 +792,14 @@ elif st.session_state.currentPage == 4:
   # Só executa a análise se ainda não estiver salva no session_state
   if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state:
     with st.spinner("Pesquisando..."):
-      resultado_da_busca, resultado_da_avaliacao = analise_dos_resultados(repostas_descritivas, formulario)
+      resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario)
     st.session_state['resultado_da_busca'] = resultado_da_busca
     st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
+    st.session_state['resultado_da_analise'] = resultado_da_analise
   else:
     resultado_da_busca = st.session_state['resultado_da_busca']
     resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']
+    resultado_da_analise = st.session_state['resultado_da_analise']
 
   # Separa o resultado_da_avaliacao em título e texto usando o primeiro '\n'
   if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
@@ -814,9 +812,14 @@ elif st.session_state.currentPage == 4:
   st.write(texto)
   
   # Exibe a recomendação de forma mais destacada e organizada
-  with st.expander("❕ Análise de Propriedades Similares ❕", expanded=False):
-    st.markdown("#### Análise de Propriedades Similares")
+  with st.expander("📃 Lista de Propriedades Similares 📃", expanded=False):
+    st.markdown("#### Lista de Propriedades Similares")
     st.write(resultado_da_busca)
+
+  # Exibe a recomendação de forma mais destacada e organizada
+  with st.expander("❕Análise Final ❕", expanded=False):
+    st.markdown("#### Análise Final")
+    st.write(resultado_da_analise)
 
   col1, col2 = st.columns(2)
   with col1:
@@ -827,6 +830,7 @@ elif st.session_state.currentPage == 4:
     csv_string = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaText)
     st.download_button(
   label="Clique aqui para baixar o CSV",
+  key="download_button",
   data=csv_string,
   file_name="respostas_inovafacil.csv",
   mime="text/csv"

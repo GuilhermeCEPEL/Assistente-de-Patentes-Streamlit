@@ -27,37 +27,50 @@ os.environ["GOOGLE_API_KEY"] = api_key
 
 # --- Funções para Google Sheets ---
 def get_sheets_client():
-    # Carrega as credenciais da conta de serviço dos Streamlit Secrets
-    # Converte o AttrDict para um dicionário Python antes de serializar para JSON
-    credentials_dict = dict(st.secrets["google_sheets_credentials"]) # <--- MUDANÇA AQUI
-    credentials_json = json.dumps(credentials_dict)
-    gc = gspread.service_account_from_dict(json.loads(credentials_json))
-    return gc
-
+  # Carrega as credenciais da conta de serviço dos Streamlit Secrets
+  # Converte o AttrDict para um dicionário Python antes de serializar para JSON
+  credentials_dict = dict(st.secrets["google_sheets_credentials"])
+  credentials_json = json.dumps(credentials_dict)
+  gc = gspread.service_account_from_dict(json.loads(credentials_json))
+  return gc
 
 @st.cache_resource(ttl=3600) # Cache o cliente para evitar múltiplas autenticações
 def get_spreadsheet(sheet_name):
-    client = get_sheets_client()
-    spreadsheet = client.open(sheet_name)
-    return spreadsheet
+  client = get_sheets_client()
+  spreadsheet = client.open(sheet_name)
+  return spreadsheet
 
 def append_data_to_sheet(sheet_name, dataframe):
+  # Use uma chave de sessão para controlar se já foi salvo antes
+  if 'already_saved_to_sheet' not in st.session_state:
     try:
-        spreadsheet = get_spreadsheet(sheet_name)
-        worksheet = spreadsheet.sheet1 # Ou use spreadsheet.worksheet("Nome da sua Aba")
+      spreadsheet = get_spreadsheet(sheet_name)
+      worksheet = spreadsheet.sheet1 # Ou use spreadsheet.worksheet("Nome da sua Aba")
 
-        # Se a planilha estiver vazia, escreve o cabeçalho e os dados
-        if not worksheet.get_all_values():
-            set_with_dataframe(worksheet, dataframe)
-        else:
-            # Encontra a próxima linha vazia e anexa os dados
-            # Convertendo DataFrame para lista de listas sem o cabeçalho para anexar
-            list_of_lists = dataframe.values.tolist()
-            worksheet.append_rows(list_of_lists)
-        st.success("Dados salvos no Google Sheets com sucesso!")
+      # Se a planilha estiver vazia, escreve o cabeçalho e os dados
+      if not worksheet.get_all_values():
+        set_with_dataframe(worksheet, dataframe)
+      else:
+        # Encontra a próxima linha vazia e anexa os dados
+        # Convertendo DataFrame para lista de listas sem o cabeçalho para anexar
+        list_of_lists = dataframe.values.tolist()
+        worksheet.append_rows(list_of_lists)
+      st.session_state['already_saved_to_sheet'] = True
+      st.success("Dados salvos no Google Sheets com sucesso!")
     except Exception as e:
-        st.error(f"Erro ao salvar dados no Google Sheets: {e}")
-        st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
+      st.error(f"Erro ao salvar dados no Google Sheets: {e}")
+      st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
+  else:
+    try:
+      spreadsheet = get_spreadsheet(sheet_name)
+      worksheet = spreadsheet.sheet1
+      # Limpa a planilha e sobrescreve com o novo DataFrame
+      worksheet.clear()
+      set_with_dataframe(worksheet, dataframe)
+      st.success("Dados sobrescritos no Google Sheets com sucesso!")
+    except Exception as e:
+      st.error(f"Erro ao sobrescrever dados no Google Sheets: {e}")
+      st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
 
 
 # Função auxiliar que envia uma mensagem para um agente via Runner e retorna a resposta final
@@ -744,7 +757,6 @@ if st.session_state.currentPage == 1:
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
     if st.button("Continuar", key="prox_page_button_1", disabled=not is_user_data_complete):
-       # Agora, chame append_data_to_sheet:
       data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
       append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
@@ -769,6 +781,8 @@ elif st.session_state.currentPage == 2:
       prev_page()
   with col2:
     if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
+      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
       next_page()
       # Clear recommendation related session state when moving back to description page
       for key in ['recomendacao_gerada', 'recomendacao_texto']:
@@ -848,6 +862,8 @@ elif st.session_state.currentPage == 3:
       prev_page()
   with col2:
     if st.button("Analisar Ideia", key="prox_page_button_3", disabled=not are_description_fields_complete):
+      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
       next_page()
       # Clear analysis related session state when moving to analysis page to ensure fresh run
       for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:

@@ -400,6 +400,29 @@ def agente_analista(topico):
 
   return resultado_do_agente 
 
+def agente_de_próximos_passos(topico):
+  agente = Agent(
+    name="agente_de_próximos_passos",
+    model="gemini-2.5-flash-preview-05-20",
+    description="Orienta os próximos passos para proteger sua Propriedade Intelectual com base nas suas escolhas.",
+    tools=[google_search],
+    instruction="""
+    Você irá orientar o usuário sobre os próximos passos para proteger sua Propriedade Intelectual (PI) com base na escolha indicada.
+    Você receberá uma dentre as seguintes opções: (i) Patente de Invenção, (ii) Modelo de Utilidade ou (iii) Programa de Computador.
+    Com base nessa escolha, e em uma análise fornecida que foi reproduzida por um agente analisador você deve fornecer um passo a passo
+    detalhado e claro sobre como o usuário pode proceder para proteger sua PI. 
+
+    Além disso, quando fizer o resultado, não precisa se introduzir.
+    """
+  )
+
+  entrada_do_agente= f"Tópico: {topico}"
+  # Executa o agente
+
+  resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+  return resultado_do_agente 
+
 # Function to navigate to the next page
 def next_page():
     st.session_state.currentPage += 1
@@ -409,7 +432,7 @@ def prev_page():
     st.session_state.currentPage -= 1
 
 # Function to save data to a CSV file
-def save_data_to_csv(user_data, questions_data, idea_text):
+def save_data_to_csv(user_data, questions_data, idea_data):
   # Combine all data into a single dictionary
   combined_data = {
     'Nome': user_data['name'],
@@ -427,15 +450,16 @@ def save_data_to_csv(user_data, questions_data, idea_text):
     'Intencao_Comercializar': 'Sim' if questions_data['q9'] else 'Não' if questions_data['q9'] is not None else '',
     'Protótipo_Ou_MVP': 'Sim' if questions_data['q10'] else 'Não' if questions_data['q10'] is not None else '',
     # Page 3: All descriptions
-    'Descricao_Ideia': st.session_state.get('ideaText_main', ''),
-    'Diferencial_Ideia': st.session_state.get('ideaText_differential', ''),
-    'Desenvolvimento_Relacionado': st.session_state.get('ideaText_dev', ''),
-    'Setor_Aplicacao': st.session_state.get('ideaText_sector', ''),
+    'Descricao_Ideia': idea_data.get('main', ''),
+    'Diferencial_Ideia': idea_data.get('differential', ''),
+    'Desenvolvimento_Relacionado': idea_data.get('dev', ''),
+    'Setor_Aplicacao': idea_data.get('sector', ''),
     # Page 3: Recommendation generated
     'Recomendacao_Protecao': st.session_state.get('recomendacao_texto', ''),
     # Page 4: Results
     'Resultado_Analise_PI': st.session_state.get('resultado_da_busca', ''),
     'Resultado_Avaliacao': st.session_state.get('resultado_da_avaliacao', ''),
+    'Resultado_Analise_Final': st.session_state.get('resultado_da_analise', ''),
   }
   # Create a DataFrame from the combined data
   df = pd.DataFrame([combined_data])
@@ -443,53 +467,74 @@ def save_data_to_csv(user_data, questions_data, idea_text):
   csv_string = df.to_csv(index=False, encoding='utf-8-sig')
   return csv_string
 
-def show_form(title, questions):
-  st.write("**{}**".format(title))
+# Centralized questionnaire questions
+QUESTIONNAIRE_SECTIONS = [
+    {
+        'title': 'Natureza da Ideia',
+        'questions': [
+            {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
+            {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
+            {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
+        ]
+    },
+    {
+        'title': 'Critérios de Patenteabilidade',
+        'questions': [
+            {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
+            {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
+            {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
+            {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
+        ]
+    },
+    {
+        'title': 'Perguntas Adicionais',
+        'questions': [
+            {'id': 'q8', 'text': 'A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos)'},
+            {'id': 'q9', 'text': 'Há intenção de comercializar ou licenciar essa ideia?'},
+            {'id': 'q10', 'text': 'Você já desenvolveu um protótipo ou MVP da solução?'},
+        ]
+    }
+]
 
-  # Display each question with radio buttons
-  for q in questions:
-    # Determine the default index for the radio button based on current state
+def display_questionnaire_section(title, questions_list):
+  st.subheader(f"**{title}**")
+  for q in questions_list:
+    default_index = None
     if st.session_state.questionsData[q['id']] is True:
       default_index = 0 # 'Sim'
     elif st.session_state.questionsData[q['id']] is False:
       default_index = 1 # 'Não'
-    else:
-      default_index = None # No selection yet
 
     response = st.radio(
       q['text'],
       ('Sim', 'Não'),
-      key=q['id'], # Unique key for each radio button
-      index=default_index # Set initial selection
+      key=f"radio_{q['id']}", # Unique key for each radio button
+      index=default_index
     )
-    # Update session state based on user's selection
     if response == 'Sim':
       st.session_state.questionsData[q['id']] = True
     elif response == 'Não':
       st.session_state.questionsData[q['id']] = False
-
-  # Add a divider line after the section
-  st.markdown("---")
+  st.markdown("---") # Divider for visual separation
 
 def analise_dos_resultados(repostas_descritivas, formulario):
-  # Use a placeholder container for temporary info messages
   info_placeholder = st.empty()
-  info_placeholder.info("🔎 Analisando as respostas ... Por favor, aguarde.")
-  # time.sleep(3) # Simula um atraso de rede/processamento
+  info_placeholder.info("🔎 Analisando as respostas... Por favor, aguarde.")
+
   if not repostas_descritivas.strip() or not formulario.strip():
-    info_placeholder.empty()  # Remove the info message
-    return ("⚠️ A descrição da patente não pode estar vazia para a pesquisa.", "", "")
+    info_placeholder.error("⚠️ A descrição da patente não pode estar vazia para a pesquisa.")
+    return ("", "", "")
   else:
-    info_placeholder.info("\n[1/4] Buscando patentes similares...")
+    info_placeholder.info("⏳ [1/4] Buscando patentes similares...")
     resultado_da_busca = agente_buscador_de_PI(f"{repostas_descritivas}\n\n{formulario}")
 
-    info_placeholder.info("\n[2/4] Revisando a lista de propriedades intelectuais encontradas...")
+    info_placeholder.info("⏳ [2/4] Revisando a lista de propriedades intelectuais encontradas...")
     resultado_da_revisao = agente_revisor(resultado_da_busca)
 
-    info_placeholder.info("\n[3/4] Avaliando os resultados...")
+    info_placeholder.info("⏳ [3/4] Avaliando o potencial da ideia...")
     resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
 
-    info_placeholder.info("\n[4/4] Analisando a lisa e a avaliação...")
+    info_placeholder.info("⏳ [4/4] Finalizando a análise e gerando conclusões...")
     resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n{resultado_da_avaliacao}")
 
     info_placeholder.empty()  # Remove the info message after processing
@@ -520,16 +565,14 @@ st.markdown(
     color: white;
   }
 
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, .st-emotion-cache-10qzy2j { /* Targets header elements and some Streamlit text elements */
     color: white !important;
   }
 
-  .card {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    margin-bottom: 20px;
+  .stAlert { /* Styling for info/warning messages */
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-radius: 8px;
   }
 
   .stButton button, .stDownloadButton button {
@@ -540,6 +583,7 @@ st.markdown(
     font-weight: bold;
     border: none;
     transition: background-color 0.3s ease;
+    width: 100%; /* Make buttons full width */
   }
 
   .stButton button:hover, .stDownloadButton button:hover {
@@ -553,116 +597,127 @@ st.markdown(
     margin: 30px 0;
   }
 
+  .stTextArea textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: black;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .stTextInput input {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: black;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Style for radio buttons */
+  .stRadio div[role="radiogroup"] label {
+    color: white;
+  }
+  .stRadio div[role="radiogroup"] label div {
+    color: white; /* Ensures the 'Sim' / 'Não' text is white */
+  }
+
+  /* Expander styling */
+  .stExpander details {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .stExpander details summary {
+    color: white;
+    font-weight: bold;
+  }
+
+  .stExpander details div {
+    color: white;
+  }
+
   </style>
   """,
   unsafe_allow_html=True
 )
 
-# Adicionando o overlay e o contêiner de conteúdo
-
-
-formulario = ""
-# initialize_session_state = None
 
 # Initialize session state variables if they don't exist
 if 'currentPage' not in st.session_state:
-    st.session_state.currentPage = 1
+  st.session_state.currentPage = 1
 if 'userData' not in st.session_state:
-    st.session_state.userData = {
-        'name': '',
-        'matricula': '',
-        'email': '',
-    }
+  st.session_state.userData = {
+      'name': '',
+      'matricula': '',
+      'email': '',
+  }
 if 'questionsData' not in st.session_state:
-    st.session_state.questionsData = {
-        'q1': None, # A ideia é apenas um algoritmo isolado ou método matemático
-        'q2': None, # A ideia é uma metodologia de ensino, gestão, negócios ou treinamento
-        'q3': None, # A ideia é puramente software (sem aplicação técnica específica)
-        'q4': None, # A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?
-        'q5': None, # A solução é nova? (Não existe algo igual já divulgado ou patenteado?)
-        'q6': None, # A solução é inventiva? (Não é óbvia para um técnico no assunto?)
-        'q7': None, # Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)
-        'q8': None, # A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos)
-        'q9': None, # Há intenção de comercializar ou licenciar essa ideia?
-        'q10': None, # Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)
-    }
-if 'ideaText' not in st.session_state:
-    st.session_state.ideaText = ''
+  st.session_state.questionsData = {q['id']: None for section in QUESTIONNAIRE_SECTIONS for q in section['questions']}
 
-###################################################################################
+if 'ideaData' not in st.session_state:
+  st.session_state.ideaData = {
+      'main': '',
+      'differential': '',
+      'dev': '',
+      'sector': '',
+  }
+
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
-  # st.title("💡 InovaFacil - Guia de Ideias")
-  # st.markdown("Bem-vindo ao seu assistente pessoal para transformar ideias em inovações! Este guia irá ajudá-lo a estruturar sua ideia, responder perguntas importantes e gerar um formulário de patente no formato do INPI. Vamos começar?")
-
   st.markdown("<h1 style='text-align: center;'>Bem-vindo à InovaFácil 💡</h1>", unsafe_allow_html=True)
-  st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Transformando suas ideias em inovação real.</p>", unsafe_allow_html=True)
-  
+  st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Sua plataforma inteligente para proteger e inovar ideias.</p>", unsafe_allow_html=True)
+
   st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
   st.title("Suas Informações")
   st.write("Por favor, preencha seus dados para continuar.")
 
-  # Input fields for user data
-  # Nome: não permitir números nem caracteres especiais
   def clean_name_input(name):
       # Permite apenas letras (incluindo acentos) e espaços
       return re.sub(r"[^A-Za-zÀ-ÿ\s]", "", name)
-
-  raw_name = st.text_input("Nome:", value=st.session_state.userData['name'])
+  
+  raw_name = st.text_input("Nome completo:", value=st.session_state.userData['name'], help="Apenas letras e espaços são permitidos.")
   cleaned_name = clean_name_input(raw_name)
-  if raw_name != cleaned_name:
-      st.warning("O nome deve conter apenas letras e espaços.")
+  if raw_name and raw_name != cleaned_name:
+      st.warning("O nome deve conter apenas letras e espaços. Caracteres inválidos foram removidos.")
   st.session_state.userData['name'] = cleaned_name
 
-  st.session_state.userData['matricula'] = st.text_input(
-      "Matrícula:",
+  matricula_input = st.text_input(
+      "Matrícula (somente números):",
       value=st.session_state.userData['matricula'],
-      key="matricula_input"
+      key="matricula_input",
+      help="Digite apenas números para sua matrícula."
   )
-  # Permitir apenas números
-  if st.session_state.userData['matricula'] and not st.session_state.userData['matricula'].isdigit():
-      st.warning("A matrícula deve conter apenas números.")
-      st.session_state.userData['matricula'] = ''.join(filter(str.isdigit, st.session_state.userData['matricula']))
+  # Ensure only digits are kept for matricula
+  cleaned_matricula = ''.join(filter(str.isdigit, matricula_input))
+  if matricula_input and matricula_input != cleaned_matricula:
+      st.warning("A matrícula deve conter apenas números. Caracteres inválidos foram removidos.")
+  st.session_state.userData['matricula'] = cleaned_matricula
 
-  st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'])
+
+  st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'], help="Seu email para contato.")
 
   # Check if all user data fields are filled
   is_user_data_complete = all(st.session_state.userData.values())
 
-  # "Next Page" button
-  if st.button("Próxima Página", key="prox_page_button_1", disabled=not is_user_data_complete):
-    next_page()
+  st.markdown("---")
+  # "Next Page" button, centered
+  col1, col2, col3 = st.columns([1, 1, 1])
+  with col2:
+    if st.button("Continuar", key="prox_page_button_1", disabled=not is_user_data_complete):
+      next_page()
+
 
 ###################################################################################
 # --- Page 2: Yes/No Questions ---
 elif st.session_state.currentPage == 2:
-  st.title("Perguntas de Sim ou Não")
-  st.write("Por favor, responda às seguintes perguntas:")
+  st.header("Questionário Rápido")
+  st.write("Por favor, responda às perguntas abaixo para nos ajudar a entender melhor sua ideia. Suas respostas são cruciais para a análise.")
 
-  questions_1 = [
-    {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
-    {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
-    {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
-  ]
+  for section in QUESTIONNAIRE_SECTIONS:
+      display_questionnaire_section(section['title'], section['questions'])
 
-  questions_2 = [
-    {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
-    {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
-    {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
-    {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
-  ]
-
-  questions_3 = [
-    {'id': 'q8', 'text': 'A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos)'},
-    {'id': 'q9', 'text': 'Há intenção de comercializar ou licenciar essa ideia?'},
-    {'id': 'q10', 'text': 'Você já desenvolveu um protótipo ou MVP da solução?'},
-  ]
-
-  show_form("Natureza da Ideia", questions_1)
-  show_form("Critérios de Patenteabilidade", questions_2)
-  show_form("Perguntas Adicionais", questions_3)
-  
   # Check if all questions are answered
   are_questions_complete = all(value is not None for value in st.session_state.questionsData.values())
 
@@ -673,119 +728,119 @@ elif st.session_state.currentPage == 2:
   with col2:
     if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
       next_page()
-      if 'recomendacao_gerada' in st.session_state:
-        del st.session_state['recomendacao_gerada'] 
-      if 'recomendacao_texto' in st.session_state:
-        del st.session_state['recomendacao_texto']
-      
+      # Clear recommendation related session state when moving back to description page
+      for key in ['recomendacao_gerada', 'recomendacao_texto']:
+        if key in st.session_state:
+          del st.session_state[key]  
 
 ###################################################################################
 # --- Page 3: Idea Description ---
 elif st.session_state.currentPage == 3:
+  # Construct the full form input for the recommender agent
+  formulario = "\n".join([
+      f"**Natureza da Ideia**",
+      f"A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}",
+      f"A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}",
+      f"A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}",
+      f"**Critérios de patenteabilidade**",
+      f"A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}",
+      f"A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}",
+      f"A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}",
+      f"Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}",
+      f"A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}",
+      f"Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}",
+      f"Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}",
+  ])
+
   if 'recomendacao_gerada' not in st.session_state:
-    # Monta o formulário com as respostas do usuário
-    formulario = f"""
-    **Natureza da Ideia**
-    A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
-    A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
-    A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
-    **Critérios de patenteabilidade**
-    A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
-    A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
-    A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
-    Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
-    A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
-    Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
-    Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
-    """
-    with st.spinner("Analisando as respostas do formulário..."):
+    with st.spinner("Gerando recomendação inicial com base no questionário..."):
       recomendacao = agente_recomendador(formulario)
-    
     st.session_state['recomendacao_texto'] = recomendacao
     st.session_state['recomendacao_gerada'] = True
 
-  with st.expander("🔔 Clique para ver a recomendação de protejer sua ideia 🔔", expanded=False):
-    st.markdown("#### Recomendação do Assistente")
+  with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
+    st.markdown("### Recomendação do Assistente")
     st.write(st.session_state['recomendacao_texto'])
 
-  st.title("Descreva Sua Ideia")
-  st.write("Descreva sua ideia em detalhes para ser feita uma análise mais objetiva. Os campos marcados com * são obrigatórios.")
+  st.header("Descreva Detalhadamente Sua Ideia")
+  st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")
 
-  # Campos obrigatórios
-  st.session_state.ideaText_main = st.text_area(
-      "Descreva a sua ideia ou invenção de forma clara e objetiva: *",
-      value=st.session_state.get('ideaText_main', ''),
-      height=250,
-      help="Ex: o que é, para que serve, como funciona."
+  st.session_state.ideaData['main'] = st.text_area(
+      "Descrição da sua ideia ou invenção (o que é, para que serve, como funciona): *",
+      value=st.session_state.ideaData['main'],
+      height=180,
+      help="Ex: 'É um sistema de irrigação inteligente que utiliza sensores de umidade para otimizar o uso da água em plantações agrícolas, reduzindo o desperdício em até 30%.'"
   )
 
-  st.session_state.ideaText_differential = st.text_area(
+  st.session_state.ideaData['differential'] = st.text_area(
       "Qual é o diferencial ou inovação da sua ideia? *",
-      value=st.session_state.get('ideaText_differential', ''),
-      height=250,
-      help="Ex: por que ela é melhor ou diferente das soluções existentes."
+      value=st.session_state.ideaData['differential'],
+      height=150,
+      help="Ex: 'Seu diferencial está no algoritmo preditivo que antecipa as necessidades hídricas da planta com base em dados climáticos e do solo, algo que as soluções atuais não oferecem.'"
   )
 
-  st.session_state.ideaText_dev = st.text_area(
-      "Você já desenvolveu algo relacionado a essa ideia?",
-      value=st.session_state.get('ideaText_dev', ''),
-      height=250,
-      help="Ex: protótipo, código, apresentação, etc."
+  st.session_state.ideaData['dev'] = st.text_area(
+      "Você já desenvolveu algo relacionado a essa ideia? (protótipo, código, apresentação, etc.)",
+      value=st.session_state.ideaData['dev'],
+      height=120,
+      help="Ex: 'Sim, desenvolvi um protótipo em escala reduzida e um software de controle em Python.'"
   )
 
-  st.session_state.ideaText_sector = st.text_area(
-      "Qual é o setor de aplicação? *",
-      value=st.session_state.get('ideaText_sector', ''),
-      height=250,
-      help="Ex: energia, educação, tecnologia, etc."
+  st.session_state.ideaData['sector'] = st.text_area(
+      "Qual é o setor de aplicação da sua ideia? *",
+      value=st.session_state.ideaData['sector'],
+      height=100,
+      help="Ex: 'Agricultura, automação, energia renovável.'"
   )
 
-  are_questions_complete = st.session_state.ideaText_main.strip() and st.session_state.ideaText_sector.strip() and st.session_state.ideaText_differential.strip()
-  
+  are_description_fields_complete = (
+      st.session_state.ideaData['main'].strip() and
+      st.session_state.ideaData['differential'].strip() and
+      st.session_state.ideaData['sector'].strip()
+  )
+
+  st.markdown("---")
   col1, col2 = st.columns(2)
   with col1:
     if st.button("Voltar", key="prev_page_button_3"):
       prev_page()
   with col2:
-    if st.button("Próxima Página", key="prox_page_button_3", disabled=not are_questions_complete):
+    if st.button("Analisar Ideia", key="prox_page_button_3", disabled=not are_description_fields_complete):
       next_page()
-      if 'resultado_da_avaliacao' in st.session_state:
-        del st.session_state['resultado_da_avaliacao'] 
-      if 'resultado_da_busca' in st.session_state:
-        del st.session_state['resultado_da_busca']
-      if 'resultado_da_analise' in st.session_state:
-        del st.session_state['resultado_da_analise']
-      
+      # Clear analysis related session state when moving to analysis page to ensure fresh run
+      for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
+        if key in st.session_state:
+          del st.session_state[key]
 
+###################################################################################
 # --- Page 4: Idea Description ---
 elif st.session_state.currentPage == 4:
 
   repostas_descritivas = f"""
   **Descrição da Ideia**
-  Descrição da ideia ou invenção: {st.session_state.ideaText_main}
-  Qual é o diferencial ou inovação da sua ideia?: {st.session_state.ideaText_differential}
-  Você já desenvolveu algo (protótipo, código, apresentação)?: {st.session_state.ideaText_dev}
-  Qual é o setor de aplicação?: {st.session_state.ideaText_sector}
+  Descrição da ideia ou invenção: {st.session_state.ideaData['main']}
+  Qual é o diferencial ou inovação da sua ideia?: {st.session_state.ideaData['differential']}
+  Você já desenvolveu algo (protótipo, código, apresentação)?: {st.session_state.ideaData['dev']}
+  Qual é o setor de aplicação?: {st.session_state.ideaData['sector']}
   """
-  formulario = f"""
-  **Natureza da Ideia**
-  A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}
-  A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}
-  A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}
-  **Critérios de patenteabilidade**
-  A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}
-  A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}
-  A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}
-  Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}
-  A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}
-  Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}
-  Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}
-  """
+  formulario_respostas = "\n".join([
+      f"A ideia é apenas um algoritmo isolado ou método matemático: {'Sim' if st.session_state.questionsData['q1'] else 'Não'}",
+      f"A ideia é uma metodologia de ensino, gestão, negócios ou treinamento: {'Sim' if st.session_state.questionsData['q2'] else 'Não'}",
+      f"A ideia é puramente software (sem aplicação técnica específica): {'Sim' if st.session_state.questionsData['q3'] else 'Não'}",
+      f"A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?: {'Sim' if st.session_state.questionsData['q4'] else 'Não'}",
+      f"A solução é nova? (Não existe algo igual já divulgado ou patenteado?): {'Sim' if st.session_state.questionsData['q5'] else 'Não'}",
+      f"A solução é inventiva? (Não é óbvia para um técnico no assunto?): {'Sim' if st.session_state.questionsData['q6'] else 'Não'}",
+      f"Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?): {'Sim' if st.session_state.questionsData['q7'] else 'Não'}",
+      f"A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos): {'Sim' if st.session_state.questionsData['q8'] else 'Não'}",
+      f"Há intenção de comercializar ou licenciar essa ideia? {'Sim' if st.session_state.questionsData['q9'] else 'Não'}",
+      f"Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}",
+  ])
 
-  # Só executa a análise se ainda não estiver salva no session_state
-  if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state:
-    with st.spinner("Pesquisando..."):
-      resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario)
+
+  # Only run analysis if not already in session_state
+  if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state or 'resultado_da_analise' not in st.session_state:
+    with st.spinner("Realizando análise aprofundada da sua ideia..."):
+      resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
     st.session_state['resultado_da_busca'] = resultado_da_busca
     st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
     st.session_state['resultado_da_analise'] = resultado_da_analise
@@ -794,52 +849,69 @@ elif st.session_state.currentPage == 4:
     resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']
     resultado_da_analise = st.session_state['resultado_da_analise']
 
-  # Separa o resultado_da_avaliacao em título e texto usando o primeiro '\n'
+  # Parse the evaluation result for better display
   if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
-    titulo, texto = resultado_da_avaliacao.split('\n', 1)
+    titulo_avaliacao, texto_avaliacao = resultado_da_avaliacao.split('\n', 1)
   else:
-    titulo = resultado_da_avaliacao if resultado_da_avaliacao else "Resultado não disponível"
-    texto = ""
+    titulo_avaliacao = resultado_da_avaliacao if resultado_da_avaliacao else "Avaliação não disponível"
+    texto_avaliacao = ""
 
-  st.title(titulo)
-  st.write(texto)
-  
-  # Exibe a recomendação de forma mais destacada e organizada
-  with st.expander("📃 Lista de Propriedades Similares 📃", expanded=False):
-    st.markdown("#### Lista de Propriedades Similares")
-    st.write(resultado_da_busca)
+  st.header("Resultados da Análise da Sua Ideia")
+  st.subheader(titulo_avaliacao)
+  st.write(texto_avaliacao)
 
-  # Exibe a recomendação de forma mais destacada e organizada
-  with st.expander("❕Análise Final ❕", expanded=False):
-    st.markdown("#### Análise Final")
-    st.write(resultado_da_analise)
+  # Display the detailed results in expanders
+  with st.expander("🔍 Propriedades Intelectuais Similares Encontradas"):
+    st.markdown("#### Lista Detalhada de PIs Similares")
+    if resultado_da_busca:
+      st.write(resultado_da_busca)
+    else:
+      st.info("Nenhuma propriedade intelectual similar foi encontrada na sua busca inicial ou a busca está em andamento.")
 
+  with st.expander("💡 Análise Final e Recomendações Estratégicas"):
+    st.markdown("#### Conclusão e Próximos Passos Sugeridos")
+    if resultado_da_analise:
+      st.write(resultado_da_analise)
+    else:
+      st.info("A análise final está sendo processada ou não há dados suficientes para uma conclusão.")
+
+  st.markdown("---")
+  st.subheader("O que você deseja proteger?")
+  st.write("Com base na análise, selecione a categoria de proteção mais adequada para sua ideia.")
+
+  opcao = st.selectbox(
+    "Escolha o tipo de proteção para sua Propriedade Intelectual:",
+    ("Selecione uma opção", "Patente de Invenção", "Modelo de Utilidade", "Programa de Computador"),
+    key="combobox_proximos_passos"
+  )
+
+  # Only show "Próximos passos" button if an option is selected
+  if opcao != "Selecione uma opção":
+    if st.button("Gerar Próximos Passos Detalhados", key="prox_passos_button"):
+      with st.spinner(f"Gerando os próximos passos para {opcao}..."):
+        proximos_passos = agente_de_próximos_passos(f"Opção selecionada: {opcao}\n\nAnálise Detalhada:\n{resultado_da_analise}")
+      st.session_state['proximos_passos_texto'] = proximos_passos
+      st.success("Próximos passos gerados com sucesso!")
+      st.markdown("### 📝 Guia Detalhado para Proteção:")
+      st.write(st.session_state['proximos_passos_texto'])
+  else:
+      st.info("Por favor, selecione uma opção para gerar os próximos passos.")
+
+
+  st.markdown("---")
   col1, col2 = st.columns(2)
   with col1:
-    if st.button("Voltar", key="prev_page_button_4"):
+    if st.button("Voltar para Descrição da Ideia", key="prev_page_button_4"):
       prev_page()
 
   with col2:
-    csv_string = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaText)
-    # # Custom CSS to set the default text color to green
-    # st.markdown(
-    #   """
-    #   <style>
-    #   body, .stApp, .stMarkdown, .stText, .stTextInput, .stTextArea, .stRadio, .stSelectbox, .stExpander, .stDataFrame, .stTable, .stDownloadButton, .stButton, .stAlert, .stSuccess, .stWarning, .stInfo, .stError, .stCodeBlock, .stTitle, .stHeader, .stSubheader, .stCaption, .stWrite, .stColumns, .stContainer, .stForm, .stFormSubmitButton, .stFormContainer, .stFormLabel, .stFormHelp, .stFormError, .stFormSuccess, .stFormWarning, .stFormInfo, .stFormCaption, .stFormText, .stFormRadio, .stFormSelectbox, .stFormExpander, .stFormDataFrame, .stFormTable, .stFormDownloadButton, .stFormButton, .stFormAlert, .stFormCodeBlock, .stFormTitle, .stFormHeader, .stFormSubheader, .stFormWrite, .stFormColumns, .stFormContainer {
-    #     color: #009E49 !important;
-    #   }
-    #   </style>
-    #   """,
-    #   unsafe_allow_html=True
-    # )
+    csv_data = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
 
     st.download_button(
-      label="Clique aqui para baixar o CSV",
+      label="💾 Baixar Relatório Completo (CSV)",
       key="download_button",
-      data=csv_string,
-      file_name="respostas_inovafacil.csv",
-      mime="text/csv"  
+      data=csv_data,
+      file_name=f"relatorio_inovafacil_{date.today()}.csv",
+      mime="text/csv",
+      help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise."
     )
-    # st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
-
-st.markdown('</div>', unsafe_allow_html=True) # Fecha a div de conteúdo

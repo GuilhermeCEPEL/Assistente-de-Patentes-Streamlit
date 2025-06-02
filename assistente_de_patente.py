@@ -64,10 +64,14 @@ def append_data_to_sheet(sheet_name, dataframe):
     try:
       spreadsheet = get_spreadsheet(sheet_name)
       worksheet = spreadsheet.sheet1
-      # Limpa a planilha e sobrescreve com o novo DataFrame
-      worksheet.clear()
-      set_with_dataframe(worksheet, dataframe)
-      st.success("Dados sobrescritos no Google Sheets com sucesso!")
+      # Remove apenas a última linha de dados (mantendo o cabeçalho)
+      all_values = worksheet.get_all_values()
+      if len(all_values) > 1:
+        worksheet.delete_rows(len(all_values))
+      # Adiciona a nova linha de dados
+      list_of_lists = dataframe.values.tolist()
+      worksheet.append_rows(list_of_lists)
+      st.success("Última linha sobrescrita no Google Sheets com sucesso!")
     except Exception as e:
       st.error(f"Erro ao sobrescrever dados no Google Sheets: {e}")
       st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
@@ -759,7 +763,6 @@ if st.session_state.currentPage == 1:
     if st.button("Continuar", key="prox_page_button_1", disabled=not is_user_data_complete):
       data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
       append_data_to_sheet("Dados InovaFacil", data_to_save_df)
-
       next_page()
 
 
@@ -781,8 +784,6 @@ elif st.session_state.currentPage == 2:
       prev_page()
   with col2:
     if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
-      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
       next_page()
       # Clear recommendation related session state when moving back to description page
       for key in ['recomendacao_gerada', 'recomendacao_texto']:
@@ -811,8 +812,12 @@ elif st.session_state.currentPage == 3:
   if 'recomendacao_gerada' not in st.session_state:
     with st.spinner("Gerando recomendação inicial com base no questionário..."):
       recomendacao = agente_recomendador(formulario)
+    
     st.session_state['recomendacao_texto'] = recomendacao
     st.session_state['recomendacao_gerada'] = True
+
+    data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+    append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
   with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
     st.markdown("### Recomendação do Assistente")
@@ -862,8 +867,6 @@ elif st.session_state.currentPage == 3:
       prev_page()
   with col2:
     if st.button("Analisar Ideia", key="prox_page_button_3", disabled=not are_description_fields_complete):
-      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
       next_page()
       # Clear analysis related session state when moving to analysis page to ensure fresh run
       for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
@@ -902,6 +905,9 @@ elif st.session_state.currentPage == 4:
     st.session_state['resultado_da_busca'] = resultado_da_busca
     st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
     st.session_state['resultado_da_analise'] = resultado_da_analise
+    
+    data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+    append_data_to_sheet("Dados InovaFacil", data_to_save_df)
   else:
     resultado_da_busca = st.session_state['resultado_da_busca']
     resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']

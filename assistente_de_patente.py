@@ -388,6 +388,8 @@ def agente_analista(topico):
     uma PI, incluindo tipos de proteção aplicáveis e etapas iniciais.
     Adicionalmente, forneça recomendações estratégicas para aprimoramento da ideia, com base em todas as informações e análises 
     dos agentes anteriores, visando fortalecer seu potencial de proteção ou comercialização.
+
+    Além disso, quando fizer o resultado, não precisa se introduzir.
     """
   )
 
@@ -504,65 +506,56 @@ st.set_page_config(
 
 # CSS para aplicar o degradê ao plano de fundo e o overlay
 st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+  """
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Poppins', sans-serif;
-    }
+  html, body, [class*="css"] {
+    font-family: 'Poppins', sans-serif;
+  }
 
-    .stApp {
-        background: linear-gradient(to bottom, #009E49, #00AEEF);
-        background-attachment: fixed;
-        color: white;
-    }
+  .stApp {
+    background: linear-gradient(to bottom, #009E49, #00AEEF);
+    background-attachment: fixed;
+    color: white;
+  }
 
-    h1, h2, h3, h4 {
-        color: white !important;
-    }
+  h1, h2, h3, h4 {
+    color: white !important;
+  }
 
-    .card {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        margin-bottom: 20px;
-    }
+  .card {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+  }
 
-    .stButton button {
-        background-color: #ffffff;
-        color: #009E49;
-        border-radius: 8px;
-        padding: 0.5em 2em;
-        font-weight: bold;
-        border: none;
-        transition: background-color 0.3s ease;
-    }
+  .stButton button, .stDownloadButton button {
+    background-color: #ffffff;
+    color: #009E49;
+    border-radius: 8px;
+    padding: 0.5em 2em;
+    font-weight: bold;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
 
-    .stButton download_button {
-        background-color: #ffffff;
-        color: #009E49;
-        border-radius: 8px;
-        padding: 0.5em 2em;
-        font-weight: bold;
-        border: none;
-        transition: background-color 0.3s ease;
-    }
-    .stButton button:hover {
-        background-color: #00AEEF;
-        color: white;
-    }
+  .stButton button:hover, .stDownloadButton button:hover {
+    background-color: #00AEEF;
+    color: white;
+  }
 
-    .divider {
-        height: 1px;
-        background-color: rgba(255,255,255,0.3);
-        margin: 30px 0;
-    }
+  .divider {
+    height: 1px;
+    background-color: rgba(255,255,255,0.3);
+    margin: 30px 0;
+  }
 
-    </style>
-    """,
-    unsafe_allow_html=True
+  </style>
+  """,
+  unsafe_allow_html=True
 )
 
 # Adicionando o overlay e o contêiner de conteúdo
@@ -828,13 +821,25 @@ elif st.session_state.currentPage == 4:
 
   with col2:
     csv_string = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaText)
+    # # Custom CSS to set the default text color to green
+    # st.markdown(
+    #   """
+    #   <style>
+    #   body, .stApp, .stMarkdown, .stText, .stTextInput, .stTextArea, .stRadio, .stSelectbox, .stExpander, .stDataFrame, .stTable, .stDownloadButton, .stButton, .stAlert, .stSuccess, .stWarning, .stInfo, .stError, .stCodeBlock, .stTitle, .stHeader, .stSubheader, .stCaption, .stWrite, .stColumns, .stContainer, .stForm, .stFormSubmitButton, .stFormContainer, .stFormLabel, .stFormHelp, .stFormError, .stFormSuccess, .stFormWarning, .stFormInfo, .stFormCaption, .stFormText, .stFormRadio, .stFormSelectbox, .stFormExpander, .stFormDataFrame, .stFormTable, .stFormDownloadButton, .stFormButton, .stFormAlert, .stFormCodeBlock, .stFormTitle, .stFormHeader, .stFormSubheader, .stFormWrite, .stFormColumns, .stFormContainer {
+    #     color: #009E49 !important;
+    #   }
+    #   </style>
+    #   """,
+    #   unsafe_allow_html=True
+    # )
+
     st.download_button(
-  label="Clique aqui para baixar o CSV",
-  key="download_button",
-  data=csv_string,
-  file_name="respostas_inovafacil.csv",
-  mime="text/csv"
+      label="Clique aqui para baixar o CSV",
+      key="download_button",
+      data=csv_string,
+      file_name="respostas_inovafacil.csv",
+      mime="text/csv"  
     )
-    st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
+    # st.success("Formulário Finalizado! Seus dados e ideia foram submetidos (simulação).")
 
 st.markdown('</div>', unsafe_allow_html=True) # Fecha a div de conteúdo

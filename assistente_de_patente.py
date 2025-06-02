@@ -16,6 +16,7 @@ import re
 # Importações para Google Sheets
 import gspread
 from gspread_dataframe import set_with_dataframe
+from PIL import Image
 import json # Para carregar as credenciais do secrets
 
 # Acessa a API Key de forma segura através dos Streamlit Secrets
@@ -56,7 +57,7 @@ def append_data_to_sheet(sheet_name, dataframe):
         list_of_lists = dataframe.values.tolist()
         worksheet.append_rows(list_of_lists)
       st.session_state['already_saved_to_sheet'] = True
-      st.success("Dados salvos no Google Sheets com sucesso!")
+    #   st.success("Dados salvos no Google Sheets com sucesso!")
     except Exception as e:
       st.error(f"Erro ao salvar dados no Google Sheets: {e}")
       st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
@@ -71,11 +72,10 @@ def append_data_to_sheet(sheet_name, dataframe):
       # Adiciona a nova linha de dados
       list_of_lists = dataframe.values.tolist()
       worksheet.append_rows(list_of_lists)
-      st.success("Última linha sobrescrita no Google Sheets com sucesso!")
+      # st.success("Última linha sobrescrita no Google Sheets com sucesso!")
     except Exception as e:
       st.error(f"Erro ao sobrescrever dados no Google Sheets: {e}")
       st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
-
 
 # Função auxiliar que envia uma mensagem para um agente via Runner e retorna a resposta final
 def call_agent(agent: Agent, message_text: str) -> str:
@@ -97,11 +97,6 @@ def call_agent(agent: Agent, message_text: str) -> str:
        final_response += part.text
        final_response += "\n"
   return final_response
-
-
-##########################################
-# --- Agente 3: Sugestor de inovações --- #
-##########################################
 
 def agente_sugestor(topico):
   buscador = Agent(
@@ -132,10 +127,6 @@ def agente_sugestor(topico):
   resultado_do_agente = call_agent(buscador, entrada_do_agente_sugestor)
 
   return resultado_do_agente 
-
-##########################################
-# --- Agente 4: Buscador Formatador --- #
-##########################################
 
 def agente_formatador(topico):
   buscador = Agent(
@@ -229,10 +220,6 @@ def agente_formatador(topico):
 
   return resultado_do_agente 
 
-##########################################
-# --- Agente 1: Buscador de Patentes --- #
-##########################################
-
 def agente_revisor(topico):
   agente = Agent(
     name="agente_revisor",
@@ -268,11 +255,6 @@ def agente_revisor(topico):
   lancamentos_buscados = call_agent(agente, entrada_do_agente)
 
   return lancamentos_buscados 
-
-
-##########################################
-# --- Agente 1: Buscador de Patentes --- #
-##########################################
 
 def agente_buscador_de_PI(topico):
   buscador = Agent(
@@ -339,10 +321,6 @@ def agente_buscador_de_PI(topico):
   lancamentos_buscados = call_agent(buscador, entrada_do_agente)
 
   return lancamentos_buscados 
-
-##########################################
-# --- Agente 5: Agente Recomendador --- #
-##########################################
 
 def agente_recomendador(topico):
   agente = Agent(
@@ -519,9 +497,6 @@ def info_to_data_frame(user_data, questions_data, idea_data):
   # Create a DataFrame from the combined data
   df = pd.DataFrame([combined_data])
   return df
-  # # Convert DataFrame to CSV string with BOM for Excel compatibility
-  # csv_string = df.to_csv(index=False, encoding='utf-8-sig')
-  # return csv_string
 
 # Centralized questionnaire questions
 QUESTIONNAIRE_SECTIONS = [
@@ -574,11 +549,15 @@ def display_questionnaire_section(title, questions_list):
   st.markdown("---") # Divider for visual separation
 
 def analise_dos_resultados(repostas_descritivas, formulario):
+  # Set a session state flag to indicate analysis is running
+  st.session_state['analysis_running'] = True
+
   info_placeholder = st.empty()
   info_placeholder.info("🔎 Analisando as respostas... Por favor, aguarde.")
 
   if not repostas_descritivas.strip() or not formulario.strip():
     info_placeholder.error("⚠️ A descrição da patente não pode estar vazia para a pesquisa.")
+    st.session_state['analysis_running'] = False
     return ("", "", "")
   else:
     info_placeholder.info("⏳ [1/4] Buscando patentes similares...")
@@ -594,13 +573,21 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n{resultado_da_avaliacao}")
 
     info_placeholder.empty()  # Remove the info message after processing
+    st.session_state['analysis_running'] = False
     return (resultado_da_revisao, resultado_da_avaliacao, resultado_da_analise)
 
 ###################################################################################
 
+# Load the custom icon image
+icon_path = os.path.join(os.path.dirname(__file__), "image", "cepel.png")
+icon_image = Image.open(icon_path)
+
+logo_path = os.path.join(os.path.dirname(__file__), "image", "eletrobras_cortado.png")
+logo_image = Image.open(logo_path)
+
 st.set_page_config(
   page_title="InovaFacil",
-  page_icon="💡",
+  page_icon=icon_image,
   layout="wide",
   initial_sidebar_state="auto"
 )
@@ -717,11 +704,17 @@ if 'ideaData' not in st.session_state:
       'dev': '',
       'sector': '',
   }
+# Display the logo image centered at the top of the page
 
+col_logo, col_title, col_empty = st.columns([1, 2, 1])
+with col_logo:
+  st.image(logo_image, width=200)
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
-  st.markdown("<h1 style='text-align: center;'>Bem-vindo à InovaFácil 💡</h1>", unsafe_allow_html=True)
-  st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Sua plataforma inteligente para proteger e inovar ideias.</p>", unsafe_allow_html=True)
+  
+  with col_title:
+    st.markdown("<h1 style='text-align: center;'>Bem-vindo à InovaFácil 💡</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 1.2rem;'>Sua plataforma inteligente para proteger e inovar ideias.</p>", unsafe_allow_html=True)
 
   st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -739,7 +732,7 @@ if st.session_state.currentPage == 1:
   st.session_state.userData['name'] = cleaned_name
 
   matricula_input = st.text_input(
-      "Matrícula (somente números):",
+      label="Matrícula (somente números):",
       value=st.session_state.userData['matricula'],
       key="matricula_input",
       help="Digite apenas números para sua matrícula."
@@ -750,11 +743,28 @@ if st.session_state.currentPage == 1:
       st.warning("A matrícula deve conter apenas números. Caracteres inválidos foram removidos.")
   st.session_state.userData['matricula'] = cleaned_matricula
 
+  # Check if matricula has exactly 7 digits
+  if cleaned_matricula and len(cleaned_matricula) != 7:
+      st.warning("A matrícula deve conter exatamente 7 dígitos.")
 
   st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'], help="Seu email para contato.")
 
-  # Check if all user data fields are filled
-  is_user_data_complete = all(st.session_state.userData.values())
+  # Email validation
+  def is_valid_email(email):
+      # Simple regex for email validation
+      pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+      return re.match(pattern, email) is not None
+
+  if st.session_state.userData['email']:
+      if not is_valid_email(st.session_state.userData['email']):
+          st.warning("Por favor, insira um e-mail válido.")
+
+  # Check if all user data fields are filled and valid
+  is_user_data_complete = (
+      bool(st.session_state.userData['name'].strip()) and
+      bool(st.session_state.userData['matricula']) and len(st.session_state.userData['matricula']) == 7 and
+      bool(st.session_state.userData['email'].strip()) and is_valid_email(st.session_state.userData['email'])
+  )
 
   st.markdown("---")
   # "Next Page" button, centered
@@ -945,7 +955,7 @@ elif st.session_state.currentPage == 4:
 
   opcao = st.selectbox(
     "Escolha o tipo de proteção para sua Propriedade Intelectual:",
-    ("Selecione uma opção", "Patente de Invenção", "Modelo de Utilidade", "Programa de Computador"),
+    ("Selecione uma opção", "Patente de Invenção (PI)", "Modelo de Utilidade (MU)", "Programa de Computador (Software)"),
     key="combobox_proximos_passos"
   )
 

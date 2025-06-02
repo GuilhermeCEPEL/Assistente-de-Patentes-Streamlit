@@ -17,6 +17,7 @@ import re
 import gspread
 from gspread_dataframe import set_with_dataframe
 from PIL import Image
+from datetime import datetime
 import json # Para carregar as credenciais do secrets
 
 # Acessa a API Key de forma segura através dos Streamlit Secrets
@@ -466,8 +467,11 @@ def prev_page():
 
 # Function to save data to a CSV file
 def info_to_data_frame(user_data, questions_data, idea_data):
+  # Add current date and time
+  now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
   # Combine all data into a single dictionary
   combined_data = {
+    'Data_Hora': now,
     'Nome': user_data['name'],
     'Matricula': user_data['matricula'],
     'Email': user_data['email'],
@@ -770,7 +774,7 @@ if st.session_state.currentPage == 1:
   # "Next Page" button, centered
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    if st.button("Continuar", key="prox_page_button_1", disabled=not is_user_data_complete):
+    if st.button("Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
       data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
       append_data_to_sheet("Dados InovaFacil", data_to_save_df)
       next_page()
@@ -793,7 +797,7 @@ elif st.session_state.currentPage == 2:
     if st.button("Voltar", key="prev_page_button_2"):
       prev_page()
   with col2:
-    if st.button("Próxima Página", key="prox_page_button_2", disabled=not are_questions_complete):
+    if st.button("Próxima Página", key="next_page_button_2", disabled=not are_questions_complete):
       next_page()
       # Clear recommendation related session state when moving back to description page
       for key in ['recomendacao_gerada', 'recomendacao_texto']:
@@ -876,7 +880,7 @@ elif st.session_state.currentPage == 3:
     if st.button("Voltar", key="prev_page_button_3"):
       prev_page()
   with col2:
-    if st.button("Analisar Ideia", key="prox_page_button_3", disabled=not are_description_fields_complete):
+    if st.button("Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
       next_page()
       # Clear analysis related session state when moving to analysis page to ensure fresh run
       for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
@@ -990,5 +994,6 @@ elif st.session_state.currentPage == 4:
       data=csv_string,
       file_name=f"relatorio_inovafacil_{date.today()}.csv",
       mime="text/csv",
-      help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise."
+      help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise.",
+      use_container_width=True
     )

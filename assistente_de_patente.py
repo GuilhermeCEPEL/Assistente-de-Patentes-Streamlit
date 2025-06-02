@@ -13,6 +13,10 @@ import textwrap # Para formatar melhor a saída de texto
 from IPython.display import HTML, Markdown
 import re
 
+# Importações para Google Sheets
+import gspread
+from gspread_dataframe import set_with_dataframe
+import json # Para carregar as credenciais do secrets
 
 # Acessa a API Key de forma segura através dos Streamlit Secrets
 # O nome da chave 'GOOGLE_API_KEY' deve corresponder ao que você definirá no Streamlit Cloud
@@ -20,6 +24,41 @@ api_key = st.secrets["GOOGLE_API_KEY"]
 
 # Configura a variável de ambiente para as bibliotecas Google
 os.environ["GOOGLE_API_KEY"] = api_key
+
+# --- Funções para Google Sheets ---
+def get_sheets_client():
+    # Carrega as credenciais da conta de serviço dos Streamlit Secrets
+    # Converte o AttrDict para um dicionário Python antes de serializar para JSON
+    credentials_dict = dict(st.secrets["google_sheets_credentials"]) # <--- MUDANÇA AQUI
+    credentials_json = json.dumps(credentials_dict)
+    gc = gspread.service_account_from_dict(json.loads(credentials_json))
+    return gc
+
+
+@st.cache_resource(ttl=3600) # Cache o cliente para evitar múltiplas autenticações
+def get_spreadsheet(sheet_name):
+    client = get_sheets_client()
+    spreadsheet = client.open(sheet_name)
+    return spreadsheet
+
+def append_data_to_sheet(sheet_name, dataframe):
+    try:
+        spreadsheet = get_spreadsheet(sheet_name)
+        worksheet = spreadsheet.sheet1 # Ou use spreadsheet.worksheet("Nome da sua Aba")
+
+        # Se a planilha estiver vazia, escreve o cabeçalho e os dados
+        if not worksheet.get_all_values():
+            set_with_dataframe(worksheet, dataframe)
+        else:
+            # Encontra a próxima linha vazia e anexa os dados
+            # Convertendo DataFrame para lista de listas sem o cabeçalho para anexar
+            list_of_lists = dataframe.values.tolist()
+            worksheet.append_rows(list_of_lists)
+        st.success("Dados salvos no Google Sheets com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao salvar dados no Google Sheets: {e}")
+        st.info("Por favor, verifique se as credenciais estão corretas e a planilha está compartilhada com a conta de serviço.")
+
 
 # Função auxiliar que envia uma mensagem para um agente via Runner e retorna a resposta final
 def call_agent(agent: Agent, message_text: str) -> str:
@@ -172,7 +211,6 @@ def agente_formatador(topico):
   resultado_do_agente = call_agent(buscador, entrada_do_agente_formatador)
 
   return resultado_do_agente 
-# --- Mock de funções Python (para simular o backend real) ---
 
 ##########################################
 # --- Agente 1: Buscador de Patentes --- #
@@ -432,7 +470,7 @@ def prev_page():
     st.session_state.currentPage -= 1
 
 # Function to save data to a CSV file
-def save_data_to_csv(user_data, questions_data, idea_data):
+def info_to_data_frame(user_data, questions_data, idea_data):
   # Combine all data into a single dictionary
   combined_data = {
     'Nome': user_data['name'],
@@ -463,9 +501,10 @@ def save_data_to_csv(user_data, questions_data, idea_data):
   }
   # Create a DataFrame from the combined data
   df = pd.DataFrame([combined_data])
-  # Convert DataFrame to CSV string with BOM for Excel compatibility
-  csv_string = df.to_csv(index=False, encoding='utf-8-sig')
-  return csv_string
+  return df
+  # # Convert DataFrame to CSV string with BOM for Excel compatibility
+  # csv_string = df.to_csv(index=False, encoding='utf-8-sig')
+  # return csv_string
 
 # Centralized questionnaire questions
 QUESTIONNAIRE_SECTIONS = [
@@ -654,7 +693,6 @@ if 'userData' not in st.session_state:
   }
 if 'questionsData' not in st.session_state:
   st.session_state.questionsData = {q['id']: None for section in QUESTIONNAIRE_SECTIONS for q in section['questions']}
-
 if 'ideaData' not in st.session_state:
   st.session_state.ideaData = {
       'main': '',
@@ -706,6 +744,10 @@ if st.session_state.currentPage == 1:
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
     if st.button("Continuar", key="prox_page_button_1", disabled=not is_user_data_complete):
+       # Agora, chame append_data_to_sheet:
+      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+
       next_page()
 
 
@@ -905,12 +947,15 @@ elif st.session_state.currentPage == 4:
       prev_page()
 
   with col2:
-    csv_data = save_data_to_csv(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+    
+    csv_data = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+      # Convert DataFrame to CSV string with BOM for Excel compatibility
+    csv_string = csv_data.to_csv(index=False, encoding='utf-8-sig')
 
     st.download_button(
       label="💾 Baixar Relatório Completo (CSV)",
       key="download_button",
-      data=csv_data,
+      data=csv_string,
       file_name=f"relatorio_inovafacil_{date.today()}.csv",
       mime="text/csv",
       help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise."

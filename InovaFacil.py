@@ -531,7 +531,15 @@ elif st.session_state.currentPage == 4:
             score = float(match.group(1)) if match is not None else 0
             return score, match.group(2).strip()
         return 0, ""
-    
+    # Extract score and text from the title if present (e.g., "8/10 - Avaliação do Potencial de Proteção")
+    title_score_match = re.match(r"(\d+(?:\.\d+)?)/10\s*-?\s*(.*)", titulo_avaliacao)
+    if title_score_match:
+      titulo_score = float(title_score_match.group(1))
+      titulo_text = title_score_match.group(2).strip()
+      titulo_avaliacao = titulo_text
+    else:
+      titulo_score = None
+      
     score_inovacao, just_inovacao = extract_score_and_justification(resultado_da_avaliacao, "Inovação")
     score_originalidade, just_originalidade = extract_score_and_justification(resultado_da_avaliacao, "Originalidade")
     score_potencial, just_potencial = extract_score_and_justification(resultado_da_avaliacao, "Potencial de Propriedade Intelectual")
@@ -542,7 +550,13 @@ elif st.session_state.currentPage == 4:
     just_inovacao = just_originalidade = just_potencial = ""
 
   st.header("📊 Avaliação do Potencial de Proteção")
-  st.subheader(titulo_avaliacao)
+  # Display the score and text from the title in the subheader, with emoji and color
+  if titulo_score is not None:
+      color = "green" if titulo_score >= 7 else ("orange" if titulo_score >= 4 else "red")
+      emoji = "✅" if titulo_score >= 7 else ("⚠️" if titulo_score >= 4 else "❌")
+      st.markdown(f"<h3>{emoji} <span style='color:{color}'>{titulo_score}/10</span> — {titulo_avaliacao}</h3>", unsafe_allow_html=True)
+  else:
+      st.subheader(titulo_avaliacao)
 
   # Função auxiliar para renderizar a pontuação com emoji e justificativa
   def display_score(label, score, justification):

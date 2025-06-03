@@ -1,26 +1,11 @@
 import streamlit as st
-import time
-import os
 import pandas as pd
-import textwrap # Para formatar melhor a saída de texto
 import re
-import gspread
-import json # Para carregar as credenciais do secrets
 
-from google.adk.agents import Agent
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-from google.adk.tools import google_search
-from google.genai import types # Para criar conteúdos (Content e Part)
-from google import genai
-from datetime import date
-from agents_functions import *
-from IPython.display import HTML, Markdown
-from sheet_functions import *
+from .agents_functions import *
+from .sheet_functions import *
 
 # Importações para Google Sheets
-from gspread_dataframe import set_with_dataframe
-from PIL import Image
 from datetime import datetime
 
 # Extract scores and justifications for each category
@@ -42,14 +27,6 @@ def display_score(label, score, justification):
     if justification:
         # st.markdown(f"<span style='font-size:0.95em;color:#222;'>{justification}</span>", unsafe_allow_html=True)
         st.markdown(f"{justification}", unsafe_allow_html=True)
-
-# Function to navigate to the next page
-def next_page():
-    st.session_state.currentPage += 1
-
-# Function to navigate to the previous page
-def prev_page():
-    st.session_state.currentPage -= 1
 
 # Function to save data to a CSV file
 def info_to_data_frame(user_data, questions_data, idea_data):
@@ -144,3 +121,14 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     progress_bar.empty()      # Remove the progress bar
     st.session_state['analysis_running'] = False
     return (resultado_da_revisao, resultado_da_avaliacao, resultado_da_analise)
+
+# Email validation
+def is_valid_email(email):
+    # Simple regex for email validation
+    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    return re.match(pattern, email) is not None
+
+
+def clean_name_input(name):
+    # Permite apenas letras (incluindo acentos) e espaços
+    return re.sub(r"[^A-Za-zÀ-ÿ\s]", "", name)

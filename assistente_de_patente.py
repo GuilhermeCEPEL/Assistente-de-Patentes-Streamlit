@@ -129,15 +129,16 @@ def agente_sugestor(topico):
 
   return resultado_do_agente 
 
-def agente_formatador(topico):
-  buscador = Agent(
-    name="agente_buscador_de_PI",
+def agente_gerador_de_relatorio(topico):
+  agente = Agent(
+    name="agente_gerador_de_relatorio",
     model="gemini-2.5-flash-preview-05-20",
-    description="Agente que irá formatar a descrição da patente no formato no INPI",
+    description="Agente que irá gerara um relatório pa partir da descrição da patente no formato no INPI",
     tools=[google_search],
     instruction="""
-    Você é um formatador e gerador de documentos para patentes no formato do INPI. Você deve analizar a descrição da 
-    patente fornecida pelo usuário e gerar o Resumo e o Resumo descritivo de acordo com os padrões do INPI. 
+    Você é um gerador de relatório para patentes no formato do INPI. Você deve analizar as informações da ideia fornecidas
+    pelo usuário assim como a escolha de qual tipo de patente o usuário deseja desenvolver e gerar o Resumo e o Resumo descritivo 
+    de acordo com os padrões do INPI. 
     
     Além disso, quando fizer o resultado, não precisa se introduzir.
     
@@ -215,9 +216,9 @@ def agente_formatador(topico):
 
     """
   )
-  entrada_do_agente_formatador = f"Tópico: {topico}"
+  entrada_do_agente = f"Tópico: {topico}"
   # Executa o agente
-  resultado_do_agente = call_agent(buscador, entrada_do_agente_formatador)
+  resultado_do_agente = call_agent(agente, entrada_do_agente)
 
   return resultado_do_agente 
 
@@ -246,8 +247,12 @@ def agente_revisor(topico):
       - Correção: Inconsistências, links errados e informações incompletas devem ser corrigidos e atualizados diretamente na lista 
       de PIs.
       - Remoção: PIs que não puderem ser encontradas ou verificadas através dos links fornecidos devem ser removidas da lista final.
+      Remova também PIs que não sejam relevantes ou que não atendam aos critérios de pesquisa.
+
       Após a revisão e correção da lista de PIs, sua tarefa final será reavaliar e reescrever as conclusões e análises previamente 
       elaboradas pelo Agente Buscador, assegurando que elas reflitam precisamente a nova lista de PIs validada e corrigida.
+      
+      Além disso, quando fizer o resultado, não precisa se introduzir.
     """
   )
 
@@ -497,6 +502,7 @@ def info_to_data_frame(user_data, questions_data, idea_data):
     'Resultado_Analise_PI': st.session_state.get('resultado_da_busca', ''),
     'Resultado_Avaliacao': st.session_state.get('resultado_da_avaliacao', ''),
     'Resultado_Analise_Final': st.session_state.get('resultado_da_analise', ''),
+    'Relatorio_INPI': st.session_state.get('relatorio_texto', ''),
   }
   # Create a DataFrame from the combined data
   df = pd.DataFrame([combined_data])
@@ -977,7 +983,7 @@ elif st.session_state.currentPage == 4:
 
 
   st.markdown("---")
-  col1, col2 = st.columns(2)
+  col1, col2, col3 = st.columns(3)
   with col1:
     if st.button("Voltar para Descrição da Ideia", key="prev_page_button_4"):
       prev_page()
@@ -989,11 +995,26 @@ elif st.session_state.currentPage == 4:
     csv_string = csv_data.to_csv(index=False, encoding='utf-8-sig')
 
     st.download_button(
-      label="💾 Baixar Relatório Completo (CSV)",
+      label="💾 Baixar Formulário Completo (CSV)",
       key="download_button",
       data=csv_string,
-      file_name=f"relatorio_inovafacil_{date.today()}.csv",
+      file_name=f"formulario_inovafacil_{date.today()}.csv",
       mime="text/csv",
       help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise.",
+      use_container_width=True
+    )
+
+  with col3:
+
+    relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")
+    
+    st.session_state['relatorio_texto'] = relatorio
+    st.download_button(
+      label="📃 Gerar Relatório INPI",
+      key="download_report_button",
+      data=relatorio,
+      file_name=f"relatorio_inovafacil_{date.today()}.txt",
+      mime="text/txt",
+      help="Baixe um relatório no formato requisitado pelo INPI.",
       use_container_width=True
     )

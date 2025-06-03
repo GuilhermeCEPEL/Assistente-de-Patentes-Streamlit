@@ -14,7 +14,7 @@ from google.adk.tools import google_search
 from google.genai import types # Para criar conteúdos (Content e Part)
 from google import genai
 from datetime import date
-from agents import *
+from agents_functions import *
 from IPython.display import HTML, Markdown
 from sheet_functions import *
 

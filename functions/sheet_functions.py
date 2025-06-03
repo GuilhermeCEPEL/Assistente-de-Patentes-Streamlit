@@ -1,23 +1,8 @@
 import streamlit as st
-import time
-import os
-import pandas as pd
-from google.adk.agents import Agent
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-from google.adk.tools import google_search
-from google.genai import types # Para criar conteúdos (Content e Part)
-from google import genai
-from datetime import date
-import textwrap # Para formatar melhor a saída de texto
-from IPython.display import HTML, Markdown
-import re
 
 # Importações para Google Sheets
 import gspread
 from gspread_dataframe import set_with_dataframe
-from PIL import Image
-from datetime import datetime
 import json # Para carregar as credenciais do secrets
 
 # --- Funções para Google Sheets ---

@@ -14,7 +14,7 @@ from google.adk.tools import google_search
 from google.genai import types # Para criar conteúdos (Content e Part)
 from google import genai
 from datetime import date
-from agents import *
+from agents_functions import *
 from IPython.display import HTML, Markdown
 from sheet_functions import *
 from auxiliar_functions import *
@@ -59,16 +59,6 @@ QUESTIONNAIRE_SECTIONS = [
         ]
     }
 ]
-
-
-# # Função para extrair score no formato "x/10 - Categoria:" ou "x/10 Categoria:" (aceita decimais)
-# def extract_score(text, category):
-#   # Exemplo de linha: "7/10 - Inovação:" ou "7.5/10 - Inovação:" ou "7.5/10 Inovação:"
-#   pattern = rf"(\d+(?:\.\d+)?)/10\s*-?\s*{re.escape(category)}:"
-#   match = re.search(pattern, text, re.IGNORECASE)
-#   return float(match.group(1)) if match else 0
-
-###################################################################################
 
 # Load the custom icon image
 icon_path = os.path.join(os.path.dirname(__file__), "image", "cepel.png")
@@ -201,6 +191,8 @@ if 'ideaData' not in st.session_state:
 col_logo, col_title, col_empty = st.columns([1, 2, 1])
 with col_logo:
   st.image(logo_image, width=200)
+
+###################################################################################
 # --- Page 1: User Information ---
 if st.session_state.currentPage == 1:
   
@@ -375,6 +367,11 @@ elif st.session_state.currentPage == 3:
         if key in st.session_state:
           del st.session_state[key]
 
+
+# # --- Page 4: Idea Description ---
+# elif st.session_state.currentPage == 4:
+#   next_page()
+
 ###################################################################################
 # --- Page 4: Idea Description ---
 elif st.session_state.currentPage == 4:
@@ -399,8 +396,6 @@ elif st.session_state.currentPage == 4:
       f"Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}",
   ])
 
-
-  # Only run analysis if not already in session_state
   if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state or 'resultado_da_analise' not in st.session_state:
     with st.spinner("⌛ Analisando as respostas... Por favor, aguarde."):
       resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
@@ -448,7 +443,6 @@ elif st.session_state.currentPage == 4:
       st.markdown(f"<h3>{emoji} <span style='color:{color}'>{titulo_score}/10</span> — {titulo_avaliacao}</h3>", unsafe_allow_html=True)
   else:
       st.subheader(titulo_avaliacao)
-
 
   display_score("Inovação", score_inovacao, just_inovacao)
   display_score("Originalidade", score_originalidade, just_originalidade)

@@ -14,7 +14,7 @@ from google.adk.tools import google_search
 from google.genai import types # Para criar conteúdos (Content e Part)
 from google import genai
 from datetime import date
-from agentes import *
+from agents import *
 from IPython.display import HTML, Markdown
 from sheet_functions import *
 
@@ -29,6 +29,35 @@ api_key = st.secrets["GOOGLE_API_KEY"]
 
 # Configura a variável de ambiente para as bibliotecas Google
 os.environ["GOOGLE_API_KEY"] = api_key
+
+# Centralized questionnaire questions
+QUESTIONNAIRE_SECTIONS = [
+    {
+        'title': 'Natureza da Ideia',
+        'questions': [
+            {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
+            {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
+            {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
+        ]
+    },
+    {
+        'title': 'Critérios de Patenteabilidade',
+        'questions': [
+            {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
+            {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
+            {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
+            {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
+        ]
+    },
+    {
+        'title': 'Perguntas Adicionais',
+        'questions': [
+            {'id': 'q8', 'text': 'A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos)'},
+            {'id': 'q9', 'text': 'Há intenção de comercializar ou licenciar essa ideia?'},
+            {'id': 'q10', 'text': 'Você já desenvolveu um protótipo ou MVP da solução?'},
+        ]
+    }
+]
 
 # Function to navigate to the next page
 def next_page():
@@ -75,35 +104,6 @@ def info_to_data_frame(user_data, questions_data, idea_data):
   # Create a DataFrame from the combined data
   df = pd.DataFrame([combined_data])
   return df
-
-# Centralized questionnaire questions
-QUESTIONNAIRE_SECTIONS = [
-    {
-        'title': 'Natureza da Ideia',
-        'questions': [
-            {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
-            {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
-            {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
-        ]
-    },
-    {
-        'title': 'Critérios de Patenteabilidade',
-        'questions': [
-            {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
-            {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
-            {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
-            {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
-        ]
-    },
-    {
-        'title': 'Perguntas Adicionais',
-        'questions': [
-            {'id': 'q8', 'text': 'A ideia já foi divulgada publicamente? (ex: redes sociais, eventos, artigos)'},
-            {'id': 'q9', 'text': 'Há intenção de comercializar ou licenciar essa ideia?'},
-            {'id': 'q10', 'text': 'Você já desenvolveu um protótipo ou MVP da solução?'},
-        ]
-    }
-]
 
 def display_questionnaire_section(title, questions_list):
   st.subheader(f"**{title}**")
@@ -160,6 +160,13 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     progress_bar.empty()      # Remove the progress bar
     st.session_state['analysis_running'] = False
     return (resultado_da_revisao, resultado_da_avaliacao, resultado_da_analise)
+
+# Função para extrair score no formato "x/10 - Categoria:" ou "x/10 Categoria:" (aceita decimais)
+def extract_score(text, category):
+  # Exemplo de linha: "7/10 - Inovação:" ou "7.5/10 - Inovação:" ou "7.5/10 Inovação:"
+  pattern = rf"(\d+(?:\.\d+)?)/10\s*-?\s*{re.escape(category)}:"
+  match = re.search(pattern, text, re.IGNORECASE)
+  return float(match.group(1)) if match else 0
 
 ###################################################################################
 
@@ -508,16 +515,48 @@ elif st.session_state.currentPage == 4:
     resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']
     resultado_da_analise = st.session_state['resultado_da_analise']
 
-  # Parse the evaluation result for better display
-  if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str) and '\n' in resultado_da_avaliacao:
-    titulo_avaliacao, texto_avaliacao = resultado_da_avaliacao.split('\n', 1)
+  # Parse and display the evaluation result with scores and emojis
+  if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str):
+    # Try to split the first line as title, rest as text
+    lines = resultado_da_avaliacao.strip().split('\n')
+    titulo_avaliacao = lines[0] if lines else "Avaliação não disponível"
+    texto_avaliacao = "\n".join(lines[1:]) if len(lines) > 1 else ""
+
+    # # Extract scores using regex
+    # def extract_score(text, category):
+    #     match = re.search(rf"{re.escape(category)}: (\d+)/10", text)
+    #     return int(match.group(1)) if match else 0
+
+    score_inovacao = extract_score(resultado_da_avaliacao, "Inovação")
+    score_originalidade = extract_score(resultado_da_avaliacao, "Originalidade")
+    score_potencial = extract_score(resultado_da_avaliacao, "Potencial de Propriedade Intelectual")
   else:
-    titulo_avaliacao = resultado_da_avaliacao if resultado_da_avaliacao else "Avaliação não disponível"
+    titulo_avaliacao = "Avaliação não disponível"
     texto_avaliacao = ""
+    score_inovacao = score_originalidade = score_potencial = 0
 
   st.header("Resultados da Análise da Sua Ideia")
   st.subheader(titulo_avaliacao)
   st.write(texto_avaliacao)
+
+  st.markdown("---")
+  st.subheader("📊 Avaliação do Potencial de Proteção")
+
+  # Função auxiliar para renderizar a pontuação com emoji
+  def display_score(label, score):
+      color = "green" if score >= 7 else ("orange" if score >= 4 else "red")
+      emoji = "✅" if score >= 7 else ("⚠️" if score >= 4 else "❌")
+      st.markdown(f"**{label}:** {emoji} <span style='color:{color}'>**{score}/10**</span>", unsafe_allow_html=True)
+
+  display_score("Inovação", score_inovacao)
+  display_score("Originalidade", score_originalidade)
+  display_score("Potencial de Propriedade Intelectual", score_potencial)
+
+  st.markdown("---")
+  # Exibir a justificativa completa sem as linhas de score
+  st.markdown("#### Justificativa Detalhada:")
+  justificativa_texto = re.sub(r"(Inovação|Originalidade|Potencial de Propriedade Intelectual): \d+/10\n*", "", resultado_da_avaliacao).strip()
+  st.write(justificativa_texto)
 
   # Display the detailed results in expanders
   with st.expander("🔍 Propriedades Intelectuais Similares Encontradas"):

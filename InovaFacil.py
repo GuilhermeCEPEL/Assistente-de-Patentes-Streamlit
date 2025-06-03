@@ -522,41 +522,42 @@ elif st.session_state.currentPage == 4:
     titulo_avaliacao = lines[0] if lines else "Avaliação não disponível"
     texto_avaliacao = "\n".join(lines[1:]) if len(lines) > 1 else ""
 
-    # # Extract scores using regex
-    # def extract_score(text, category):
-    #     match = re.search(rf"{re.escape(category)}: (\d+)/10", text)
-    #     return int(match.group(1)) if match else 0
-
-    score_inovacao = extract_score(resultado_da_avaliacao, "Inovação")
-    score_originalidade = extract_score(resultado_da_avaliacao, "Originalidade")
-    score_potencial = extract_score(resultado_da_avaliacao, "Potencial de Propriedade Intelectual")
+    # Extract scores and justifications for each category
+    def extract_score_and_justification(text, category):
+        # Pattern: x/10 - Categoria: justificativa
+        pattern = rf"(\d+(?:\.\d+)?)/10\s*-?\s*\b{re.escape(category)}\b:\s*(.*)"
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            score = float(match.group(1)) if match is not None else 0
+            return score, match.group(2).strip()
+        return 0, ""
+    
+    score_inovacao, just_inovacao = extract_score_and_justification(resultado_da_avaliacao, "Inovação")
+    score_originalidade, just_originalidade = extract_score_and_justification(resultado_da_avaliacao, "Originalidade")
+    score_potencial, just_potencial = extract_score_and_justification(resultado_da_avaliacao, "Potencial de Propriedade Intelectual")
   else:
     titulo_avaliacao = "Avaliação não disponível"
     texto_avaliacao = ""
     score_inovacao = score_originalidade = score_potencial = 0
+    just_inovacao = just_originalidade = just_potencial = ""
 
-  st.header("Resultados da Análise da Sua Ideia")
+  st.header("📊 Avaliação do Potencial de Proteção")
   st.subheader(titulo_avaliacao)
-  st.write(texto_avaliacao)
 
-  st.markdown("---")
-  st.subheader("📊 Avaliação do Potencial de Proteção")
-
-  # Função auxiliar para renderizar a pontuação com emoji
-  def display_score(label, score):
+  # Função auxiliar para renderizar a pontuação com emoji e justificativa
+  def display_score(label, score, justification):
       color = "green" if score >= 7 else ("orange" if score >= 4 else "red")
       emoji = "✅" if score >= 7 else ("⚠️" if score >= 4 else "❌")
       st.markdown(f"**{label}:** {emoji} <span style='color:{color}'>**{score}/10**</span>", unsafe_allow_html=True)
+      if justification:
+          # st.markdown(f"<span style='font-size:0.95em;color:#222;'>{justification}</span>", unsafe_allow_html=True)
+          st.markdown(f"{justification}", unsafe_allow_html=True)
 
-  display_score("Inovação", score_inovacao)
-  display_score("Originalidade", score_originalidade)
-  display_score("Potencial de Propriedade Intelectual", score_potencial)
+  display_score("Inovação", score_inovacao, just_inovacao)
+  display_score("Originalidade", score_originalidade, just_originalidade)
+  display_score("Potencial de Propriedade Intelectual", score_potencial, just_potencial)
 
   st.markdown("---")
-  # Exibir a justificativa completa sem as linhas de score
-  st.markdown("#### Justificativa Detalhada:")
-  justificativa_texto = re.sub(r"(Inovação|Originalidade|Potencial de Propriedade Intelectual): \d+/10\n*", "", resultado_da_avaliacao).strip()
-  st.write(justificativa_texto)
 
   # Display the detailed results in expanders
   with st.expander("🔍 Propriedades Intelectuais Similares Encontradas"):

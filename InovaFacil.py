@@ -93,7 +93,7 @@ def call_agent(agent: Agent, message_text: str) -> str:
   # Itera assincronamente pelos eventos retornados durante a execução do agente
   for event in runner.run(user_id="user1", session_id="session1", new_message=content):
     if event.is_final_response():
-     for part in event.content.parts:
+     for part in event.content.parts: # type: ignore
       if part.text is not None:
        final_response += part.text
        final_response += "\n"
@@ -570,19 +570,26 @@ def analise_dos_resultados(repostas_descritivas, formulario):
     st.session_state['analysis_running'] = False
     return ("", "", "")
   else:
-    info_placeholder.info("⏳ [1/4] Buscando patentes similares...")
+    progress_bar = st.progress(0, text="Iniciando análise...")
+
+    info_placeholder.info("Buscando patentes similares...")
+    progress_bar.progress(0.25)
     resultado_da_busca = agente_buscador_de_PI(f"{repostas_descritivas}\n\n{formulario}")
 
-    info_placeholder.info("⏳ [2/4] Revisando a lista de propriedades intelectuais encontradas...")
+    info_placeholder.info("Revisando a lista de propriedades intelectuais encontradas...")
+    progress_bar.progress(0.5)
     resultado_da_revisao = agente_revisor(resultado_da_busca)
 
-    info_placeholder.info("⏳ [3/4] Avaliando o potencial da ideia...")
+    info_placeholder.info("Avaliando o potencial da ideia...")
+    progress_bar.progress(0.75)
     resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
 
-    info_placeholder.info("⏳ [4/4] Finalizando a análise e gerando conclusões...")
+    info_placeholder.info("Finalizando a análise e gerando conclusões...")
+    progress_bar.progress(0.95)
     resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n{resultado_da_avaliacao}")
 
     info_placeholder.empty()  # Remove the info message after processing
+    progress_bar.empty()      # Remove the progress bar
     st.session_state['analysis_running'] = False
     return (resultado_da_revisao, resultado_da_avaliacao, resultado_da_analise)
 
@@ -920,7 +927,7 @@ elif st.session_state.currentPage == 4:
 
   # Only run analysis if not already in session_state
   if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state or 'resultado_da_analise' not in st.session_state:
-    with st.spinner("Realizando análise aprofundada da sua ideia..."):
+    with st.spinner("🔎 Analisando as respostas... Por favor, aguarde."):
       resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
     st.session_state['resultado_da_busca'] = resultado_da_busca
     st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
@@ -1024,7 +1031,7 @@ elif st.session_state.currentPage == 4:
       mime="text/txt",
       help="Baixe um relatório no formato requisitado pelo INPI.",
       use_container_width=True,
-      on_click=lambda: generate_relatorio() if not relatorio else None
+      on_click=lambda: generate_relatorio() if not relatorio else None # type: ignore
     ):
       if not relatorio:
         relatorio = generate_relatorio()

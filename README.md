@@ -1,6 +1,6 @@
 # 💡 InovaFácil: Assistente Inteligente de Patente
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://assistente-de-patente.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://inovafacil.streamlit.app/)
 
 Um assistente de IA avançado para guiar você na fase inicial do processo de Propriedade Intelectual (PI), desenvolvido com **Streamlit** e **Agentes do Google ADK (Gemini)**.
 
@@ -9,7 +9,7 @@ Um assistente de IA avançado para guiar você na fase inicial do processo de Pr
 ## 🚀 Acesse a Aplicação
 
 Experimente o InovaFácil online:
-[assistente-de-patente.streamlit.app](https://assistente-de-patente.streamlit.app/)
+[inovafacil.streamlit.app](https://inovafacil.streamlit.app/)
 
 ---
 

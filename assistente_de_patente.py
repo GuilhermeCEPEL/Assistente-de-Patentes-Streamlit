@@ -1006,15 +1006,25 @@ elif st.session_state.currentPage == 4:
 
   with col3:
 
-    relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")
-    
-    st.session_state['relatorio_texto'] = relatorio
-    st.download_button(
+    # Only generate the report when the download button is pressed
+    def generate_relatorio():
+      relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")
+      st.session_state['relatorio_texto'] = relatorio
+      data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+      append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+      return relatorio
+
+    relatorio = st.session_state.get('relatorio_texto', '')
+
+    if st.download_button(
       label="📃 Gerar Relatório INPI",
       key="download_report_button",
-      data=relatorio,
+      data=relatorio if relatorio else "",
       file_name=f"relatorio_inovafacil_{date.today()}.txt",
       mime="text/txt",
       help="Baixe um relatório no formato requisitado pelo INPI.",
-      use_container_width=True
-    )
+      use_container_width=True,
+      on_click=lambda: generate_relatorio() if not relatorio else None
+    ):
+      if not relatorio:
+        relatorio = generate_relatorio()

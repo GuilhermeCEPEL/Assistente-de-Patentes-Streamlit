@@ -121,8 +121,8 @@ def render_page4():
         if 'proximos_passos_texto' in st.session_state and st.session_state['proximos_passos_texto']:
             st.markdown("### 📝 Guia Detalhado para Proteção:")
             st.write(st.session_state['proximos_passos_texto'])
-        else:
-            st.info("Por favor, selecione uma opção para gerar os próximos passos.")
+    else:
+        st.info("Por favor, selecione uma opção para gerar os próximos passos.")
 
     st.markdown("---")
     col1, col2, col3 = st.columns(3)

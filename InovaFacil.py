@@ -105,7 +105,10 @@ st.markdown(
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
-
+  /* Style for selectbox labels */
+  .stSelectbox label, .stSelectbox label[data-testid="stWidgetLabel"] {
+    color: white !important;
+  }
   .stTextInput input {
     background-color: rgba(255, 255, 255, 0.1);
     color: black;

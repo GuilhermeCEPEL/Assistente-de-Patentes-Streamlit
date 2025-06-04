@@ -115,6 +115,9 @@ def render_page4():
                 proximos_passos = agente_de_próximos_passos(f"Opção selecionada: {opcao}\n\nAnálise Detalhada:\n{resultado_da_analise}")
             st.session_state['proximos_passos_texto'] = proximos_passos
             st.success("Próximos passos gerados com sucesso!")
+
+        # Always display the generated "proximos_passos_texto" if it exists in session_state
+        if 'proximos_passos_texto' in st.session_state and st.session_state['proximos_passos_texto']:
             st.markdown("### 📝 Guia Detalhado para Proteção:")
             st.write(st.session_state['proximos_passos_texto'])
         else:

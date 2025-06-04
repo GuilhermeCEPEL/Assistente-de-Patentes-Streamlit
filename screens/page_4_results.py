@@ -140,7 +140,7 @@ def render_page4():
             mime="text/txt",
             help="Baixe um relatório no formato requisitado pelo INPI.",
             use_container_width=True,
-            on_click=lambda: generate_relatorio(opcao, repostas_descritivas, formulario_respostas) if not relatorio else None # type: ignore
+            # on_click=lambda: generate_relatorio(opcao, repostas_descritivas, formulario_respostas) if not relatorio else None # type: ignore
         ):
             if not relatorio:
                 relatorio = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)

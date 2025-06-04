@@ -9,16 +9,6 @@ from functions.agents_functions import *
 from functions.sheet_functions import *
 from functions.auxiliar_functions import *
 
-def scroll_to_top():
-    components.html(
-        """
-        <div id="top-anchor"></div>
-        <script>
-            document.getElementById("top-anchor").scrollIntoView({behavior: "smooth"});
-        </script>
-        """,
-        height=0,
-    )
 
 def render_page3():
 
@@ -51,7 +41,7 @@ def render_page3():
         with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
             st.markdown("### Recomendação do Assistente")
             st.write(st.session_state['recomendacao_texto'])
-    scroll_to_top()
+
     st.header("Descreva Detalhadamente Sua Ideia")
     st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")
 

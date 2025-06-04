@@ -189,8 +189,21 @@ def navigate_pages():
               st.session_state.currentPage += 1
               st.rerun()
             else:
-              st.session_state.currentPage = 0
-              st.rerun()
+                # Reset all previous answers when finishing
+                st.session_state.currentPage = 0
+                st.session_state.userData = {
+                  'name': '',
+                  'matricula': '',
+                  'email': '',
+                }
+                st.session_state.questionsData = get_initial_questions_data()
+                st.session_state.ideaData = {
+                  'main': '',
+                  'differential': '',
+                  'dev': '',
+                  'sector': '',
+                }
+                st.rerun()
         elif navigation_action == -1:
             st.session_state.currentPage -= 1
             st.rerun()

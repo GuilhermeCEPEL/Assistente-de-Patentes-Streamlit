@@ -76,7 +76,7 @@ def display_questionnaire_section(title, questions_list):
       default_index = 1 # 'Não'
 
     response = st.radio(
-      q['text'],
+      f"❓ {q['text']}",
       ('Sim', 'Não'),
       key=f"radio_{q['id']}", # Unique key for each radio button
       index=default_index

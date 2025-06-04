@@ -56,6 +56,10 @@ st.markdown(
   html, body, [class*="css"] {
     font-family: 'Poppins', sans-serif;
   }
+  /* Style for text input labels */
+  .stTextInput label {
+    color: white !important;
+  }
 
   .stApp {
     background: linear-gradient(to bottom, #009E49, #00AEEF);
@@ -111,12 +115,19 @@ st.markdown(
 
   /* Style for radio buttons */
   .stRadio div[role="radiogroup"] label {
-    color: white;
+    color: white !important;
   }
   .stRadio div[role="radiogroup"] label div {
-    color: white; /* Ensures the 'Sim' / 'Não' text is white */
+    color: white !important; /* Ensures the 'Sim' / 'Não' text is white */
   }
-
+  /* Make the radio group label white as well */
+  .stRadio > label, .stRadio label[data-testid="stWidgetLabel"] {
+    color: white !important;
+  }
+  /* Style for text area labels */
+  .stTextArea label {
+    color: white !important;
+  }
   /* Expander styling */
   .stExpander details {
     background-color: rgba(255, 255, 255, 0.1);

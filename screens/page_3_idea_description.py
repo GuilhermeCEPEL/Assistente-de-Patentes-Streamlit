@@ -46,28 +46,28 @@ def render_page3():
     st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")
 
     st.session_state.ideaData['main'] = st.text_area(
-        "Descrição da sua ideia ou invenção (o que é, para que serve, como funciona): *",
+        "❓ Descrição da sua ideia ou invenção (o que é, para que serve, como funciona): *",
         value=st.session_state.ideaData['main'],
         height=180,
         help="Ex: 'É um sistema de irrigação inteligente que utiliza sensores de umidade para otimizar o uso da água em plantações agrícolas, reduzindo o desperdício em até 30%.'"
     )
 
     st.session_state.ideaData['differential'] = st.text_area(
-        "Qual é o diferencial ou inovação da sua ideia? *",
+        "❓ Qual é o diferencial ou inovação da sua ideia? *",
         value=st.session_state.ideaData['differential'],
         height=150,
         help="Ex: 'Seu diferencial está no algoritmo preditivo que antecipa as necessidades hídricas da planta com base em dados climáticos e do solo, algo que as soluções atuais não oferecem.'"
     )
 
     st.session_state.ideaData['dev'] = st.text_area(
-        "Você já desenvolveu algo relacionado a essa ideia? (protótipo, código, apresentação, etc.)",
+        "❓ Você já desenvolveu algo relacionado a essa ideia? (protótipo, código, apresentação, etc.)",
         value=st.session_state.ideaData['dev'],
         height=120,
         help="Ex: 'Sim, desenvolvi um protótipo em escala reduzida e um software de controle em Python.'"
     )
 
     st.session_state.ideaData['sector'] = st.text_area(
-        "Qual é o setor de aplicação da sua ideia? *",
+        "❓ Qual é o setor de aplicação da sua ideia? *",
         value=st.session_state.ideaData['sector'],
         height=100,
         help="Ex: 'Agricultura, automação, energia renovável.'"

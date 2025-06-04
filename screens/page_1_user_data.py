@@ -17,14 +17,14 @@ def render_page1():
     st.title("Suas Informações")
     st.write("Por favor, preencha seus dados para continuar.")
 
-    raw_name = st.text_input("Nome completo:", value=st.session_state.userData['name'], help="Apenas letras e espaços são permitidos.")
+    raw_name = st.text_input("❓ Nome completo:", value=st.session_state.userData['name'], help="Apenas letras e espaços são permitidos.")
     cleaned_name = clean_name_input(raw_name)
     if raw_name and raw_name != cleaned_name:
         st.warning("O nome deve conter apenas letras e espaços. Caracteres inválidos foram removidos.")
     st.session_state.userData['name'] = cleaned_name
 
     matricula_input = st.text_input(
-        label="Matrícula (somente números):",
+        label="❓ Matrícula (somente números):",
         value=st.session_state.userData['matricula'],
         key="matricula_input",
         help="Digite apenas números para sua matrícula."
@@ -39,7 +39,7 @@ def render_page1():
     if cleaned_matricula and len(cleaned_matricula) != 7:
         st.warning("A matrícula deve conter exatamente 7 dígitos.")
 
-    st.session_state.userData['email'] = st.text_input("Email:", value=st.session_state.userData['email'], help="Seu email para contato.")
+    st.session_state.userData['email'] = st.text_input("❓ Email:", value=st.session_state.userData['email'], help="Seu email para contato.")
 
     if st.session_state.userData['email']:
         if not is_valid_email(st.session_state.userData['email']):

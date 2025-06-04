@@ -11,8 +11,19 @@ from functions.auxiliar_functions import *
 def render_page5():
     st.title("Obrigado por participar do InovaFacil!")
     st.write("Esperamos que tenha encontrado informações úteis para proteger e desenvolver sua ideia.")
+    
+    image_path = os.path.join("image", "imagem_final.jpg")
+    if os.path.exists(image_path):
+        image = Image.open(image_path)
+        # Centralize the image using columns
+        col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+        with col_img2:
+            st.image(image, width=600)
+    
     st.markdown("---")
     st.write("Você pode baixar um arquivo CSV com todas as suas respostas e os resultados da análise.")
+    
+    
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("Voltar para a página anterior"):

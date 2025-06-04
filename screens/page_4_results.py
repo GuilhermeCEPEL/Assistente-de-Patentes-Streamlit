@@ -9,6 +9,7 @@ from functions.sheet_functions import *
 from functions.auxiliar_functions import *
 
 def render_page4():
+
     repostas_descritivas = f"""
     **Descrição da Ideia**
     Descrição da ideia ou invenção: {st.session_state.ideaData['main']}
@@ -130,21 +131,6 @@ def render_page4():
             return -1
 
     with col2:
-        csv_data = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-            # Convert DataFrame to CSV string with BOM for Excel compatibility
-        csv_string = csv_data.to_csv(index=False, encoding='utf-8-sig')
-
-        st.download_button(
-            label="💾 Baixar Formulário Completo (CSV)",
-            key="download_button",
-            data=csv_string,
-            file_name=f"formulario_inovafacil_{date.today()}.csv",
-            mime="text/csv",
-            help="Baixe um arquivo CSV com todas as suas respostas e os resultados da análise.",
-            use_container_width=True
-        )
-
-    with col3:
         relatorio = st.session_state.get('relatorio_texto', '')
         if st.download_button(
             label="📃 Gerar Relatório INPI",
@@ -158,3 +144,7 @@ def render_page4():
         ):
             if not relatorio:
                 relatorio = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
+
+    with col3:
+        if st.button("Finalizar e Enviar Respostas", key="finalize_button"):
+            return 1

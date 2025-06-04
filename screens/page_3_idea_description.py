@@ -2,13 +2,26 @@ import streamlit as st
 import os
 import re
 from PIL import Image
+from time import sleep
+import streamlit.components.v1 as components
 
 from functions.agents_functions import *
 from functions.sheet_functions import *
 from functions.auxiliar_functions import *
 
+def scroll_to_top():
+    components.html(
+        """
+        <div id="top-anchor"></div>
+        <script>
+            document.getElementById("top-anchor").scrollIntoView({behavior: "smooth"});
+        </script>
+        """,
+        height=0,
+    )
 
 def render_page3():
+
     # Construct the full form input for the recommender agent
     formulario = "\n".join([
         f"**Natureza da Ideia**",
@@ -38,7 +51,7 @@ def render_page3():
         with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
             st.markdown("### Recomendação do Assistente")
             st.write(st.session_state['recomendacao_texto'])
-
+    scroll_to_top()
     st.header("Descreva Detalhadamente Sua Ideia")
     st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")
 

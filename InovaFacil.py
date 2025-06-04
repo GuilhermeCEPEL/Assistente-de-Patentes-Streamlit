@@ -10,6 +10,7 @@ from screens.page_1_user_data import render_page1
 from screens.page_2_questions import render_page2, get_initial_questions_data
 from screens.page_3_idea_description import render_page3
 from screens.page_4_results import render_page4
+from screens.page_5_end import render_page5
 
 # Importações para Google Sheets
 from PIL import Image
@@ -162,8 +163,8 @@ if 'ideaData' not in st.session_state:
       'dev': '',
       'sector': '',
   }
-# Display the logo image centered at the top of the page
 
+# Display the logo image centered at the top of the page
 col_logo, col_title, col_empty = st.columns([1, 2, 1])
 with col_logo:
   st.image(logo_image, width=200)
@@ -175,6 +176,7 @@ def navigate_pages():
         1: render_page2,
         2: render_page3,
         3: render_page4,
+        4: render_page5,
     }
 
     current_page_renderer = page_functions.get(st.session_state.currentPage)
@@ -183,8 +185,12 @@ def navigate_pages():
         navigation_action = current_page_renderer()
 
         if navigation_action == 1:
-            st.session_state.currentPage += 1
-            st.rerun()
+            if st.session_state.currentPage != 4:  # Prevent going beyond the last page
+              st.session_state.currentPage += 1
+              st.rerun()
+            else:
+              st.session_state.currentPage = 0
+              st.rerun()
         elif navigation_action == -1:
             st.session_state.currentPage -= 1
             st.rerun()

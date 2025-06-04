@@ -193,38 +193,3 @@ def navigate_pages():
         st.rerun()
 
 navigate_pages()
-
-
-# ###################################################################################
-# # --- Page 1: User Information ---
-# if st.session_state.currentPage == 1:
-#   if render_page1() == 1: # Chama a função da página 1
-#     st.session_state.currentPage = 2
-#     st.rerun() 
-
-
-# ###################################################################################
-# # --- Page 2: Yes/No Questions ---
-# elif st.session_state.currentPage == 2:
-#   page_result = render_page2()
-#   if page_result == 1: # Chama a função da página 1
-#     st.session_state.currentPage = 3
-#     st.rerun() 
-#   elif page_result == -1:
-#     st.session_state.currentPage = 1
-#     st.rerun() 
-
-# ###################################################################################
-# # --- Page 3: Idea Description ---
-# elif st.session_state.currentPage == 3:
-  
-
-# # # --- Page 4: Idea Description ---
-# # elif st.session_state.currentPage == 4:
-# #   next_page()
-
-# ###################################################################################
-# # --- Page 4: Idea Description ---
-# elif st.session_state.currentPage == 4:
-
- 

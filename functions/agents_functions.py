@@ -318,7 +318,7 @@ def agente_avaliador(topico):
 
     O resultado deve seguir o seguinte formato:
 
-    X/10 - 'titulo que resuma a avaliação'\n
+    X/10 - 'frase breve e direta que justifique a nota da avaliação geral. Algo como "Inovação sólida e boa originalidade, mas potencial limitado de Proteção."'\n
     x/10 - Inovação: 'justificativa breve da nota'\n
     x/10 - Originalidade: 'justificativa breve da nota'\n
     x/10 - Potencial de Propriedade Intelectual: 'justificativa breve da nota'

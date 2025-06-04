@@ -60,6 +60,6 @@ def render_page1():
             data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
             append_data_to_sheet("Dados InovaFacil", data_to_save_df)
             # next_page()
-            return True
+            return 1
         else:
-            return False
+            return 0

@@ -132,3 +132,11 @@ def is_valid_email(email):
 def clean_name_input(name):
     # Permite apenas letras (incluindo acentos) e espaços
     return re.sub(r"[^A-Za-zÀ-ÿ\s]", "", name)
+
+# Only generate the report when the download button is pressed
+def generate_relatorio(opcao, repostas_descritivas, formulario_respostas):
+    relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")       
+    st.session_state['relatorio_texto'] = relatorio
+    data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+    append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+    return relatorio

@@ -9,7 +9,7 @@ Um assistente de IA avançado para guiar você na fase inicial do processo de Pr
 ## 🚀 Acesse a Aplicação
 
 Experimente o InovaFácil online:
-[inovafacil.streamlit.app](https://inovafacil.streamlit.app/)
+[inova-facil.streamlit.app](https://inova-facil.streamlit.app/)
 
 ---
 

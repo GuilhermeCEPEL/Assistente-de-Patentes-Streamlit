@@ -135,13 +135,6 @@ def clean_name_input(name):
 
 # Only generate the report when the download button is pressed
 def generate_relatorio(opcao, repostas_descritivas, formulario_respostas):
-    # repostas_descritivas = st.session_state.get('repostas_descritivas', '')
-    # formulario_respostas = st.session_state.get('formulario_respostas', '')
-    # opcao = st.session_state.get('opcao_selecionada','') if 'opcao_selecionada' in st.session_state else 'Nenhuma opção selecionada'
-    # opcao = "Patente de Invenção (PI)"
-    # st.write("TESTEEE")
-    # st.write(st.session_state.get('opcao_selecionada', ''), icon="ℹ️")# st.session_state.get('opcao_selecionada', opcao)
-    # st.write(opcao, icon="ℹ️")# st.session_state.get('opcao_selecionada', opcao)
     relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")       
     st.session_state['relatorio_texto'] = relatorio
     data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)

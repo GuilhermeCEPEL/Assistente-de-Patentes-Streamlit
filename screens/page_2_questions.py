@@ -12,18 +12,18 @@ QUESTIONNAIRE_SECTIONS = [
     {
         'title': 'Natureza da Ideia',
         'questions': [
-            {'id': 'q1', 'text': 'A ideia é apenas um algoritmo isolado ou método matemático?'},
-            {'id': 'q2', 'text': 'A ideia é uma metodologia de ensino, gestão, negócios ou treinamento?'},
-            {'id': 'q3', 'text': 'A ideia é puramente software (sem aplicação técnica específica)?'},
+            {'id': 'q1', 'text': 'Sua ideia é apenas um algoritmo isolado ou método matemático?'},
+            {'id': 'q2', 'text': 'Sua ideia consiste em uma metodologia (de ensino, gestão, negócios ou treinamento)?'},
+            {'id': 'q3', 'text': 'Sua ideia é puramente software (sem aplicação técnica ou física específica)?'},
         ]
     },
     {
         'title': 'Critérios de Patenteabilidade',
         'questions': [
             {'id': 'q4', 'text': 'A ideia resolve um problema técnico com uma solução técnica (ex: dispositivo, sistema físico, mecanismo)?'},
-            {'id': 'q5', 'text': 'A solução é nova? (Não existe algo igual já divulgado ou patenteado?)'},
-            {'id': 'q6', 'text': 'A solução é inventiva? (Não é óbvia para um técnico no assunto?)'},
-            {'id': 'q7', 'text': 'Tem aplicação industrial? (Pode ser fabricada, usada ou aplicada em algum setor produtivo?)'},
+            {'id': 'q5', 'text': 'A solução é nova (não existe algo igual já divulgado ou patenteado)?'},
+            {'id': 'q6', 'text': 'A solução é inventiva (não é óbvia para um técnico no assunto)?'},
+            {'id': 'q7', 'text': 'Tem aplicação industrial (pode ser fabricada, usada ou aplicada em algum setor produtivo)?'},
         ]
     },
     {
@@ -58,10 +58,10 @@ def render_page2():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Voltar", key="prev_page_button_2"):
+        if st.button("⬅️ Voltar", key="prev_page_button_2"):
             return -1
     with col2:
-        if st.button("Próxima Página", key="next_page_button_2", disabled=not are_questions_complete):
+        if st.button("➡️ Próxima Página", key="next_page_button_2", disabled=not are_questions_complete):
             # Clear recommendation related session state when moving back to description page
             for key in ['recomendacao_gerada', 'recomendacao_texto']:
                 if key in st.session_state:

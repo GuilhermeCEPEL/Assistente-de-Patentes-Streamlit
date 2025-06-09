@@ -99,6 +99,16 @@ def render_page4():
         else:
             st.info("A análise final está sendo processada ou não há dados suficientes para uma conclusão.")
 
+    # Button to regenerate the analysis
+    if st.button("🔄 Reprocessar Análise", key="regenerate_analysis_button"):
+        with st.spinner("Reprocessando análise..."):
+            resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
+        st.session_state['resultado_da_busca'] = resultado_da_busca
+        st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
+        st.session_state['resultado_da_analise'] = resultado_da_analise
+        st.success("Análise reprocessada com sucesso!")
+        st.rerun()
+
     st.markdown("---")
     st.subheader("O que você deseja proteger?")
     st.write("Com base na análise, selecione a categoria de proteção mais adequada para sua ideia.")
@@ -111,6 +121,7 @@ def render_page4():
 
     # Only show "Próximos passos" button if an option is selected
     if opcao != "Selecione uma opção":
+        st.session_state['opcao_selecionada'] = opcao  # Store the selected option in session state
         if st.button("Gerar Próximos Passos Detalhados", key="prox_passos_button"):
             with st.spinner(f"Gerando os próximos passos para {opcao}..."):
                 proximos_passos = agente_de_próximos_passos(f"Opção selecionada: {opcao}\n\nAnálise Detalhada:\n{resultado_da_analise}")
@@ -127,9 +138,9 @@ def render_page4():
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("Voltar para Descrição da Ideia", key="prev_page_button_4"):
+        if st.button("⬅️ Voltar para Descrição da Ideia", key="prev_page_button_4"):
             return -1
-
+        
     with col2:
         relatorio = st.session_state.get('relatorio_texto', '')
         if st.download_button(
@@ -140,11 +151,11 @@ def render_page4():
             mime="text/txt",
             help="Baixe um relatório no formato requisitado pelo INPI.",
             use_container_width=True,
-            # on_click=lambda: generate_relatorio(opcao, repostas_descritivas, formulario_respostas) if not relatorio else None # type: ignore
+            on_click=lambda: generate_relatorio(opcao, repostas_descritivas, formulario_respostas) if not relatorio else None # type: ignore
         ):
             if not relatorio:
                 relatorio = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
 
     with col3:
-        if st.button("Finalizar e Enviar Respostas", key="finalize_button"):
+        if st.button("➡️ Finalizar e Enviar Respostas", key="finalize_button"):
             return 1

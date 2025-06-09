@@ -82,10 +82,10 @@ def render_page3():
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Voltar", key="prev_page_button_3"):
+        if st.button("⬅️ Voltar", key="prev_page_button_3"):
             return -1  # Go back to the previous page
     with col2:
-        if st.button("Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
+        if st.button("➡️ Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
             # Clear analysis related session state when moving to analysis page to ensure fresh run
             for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
                 if key in st.session_state:

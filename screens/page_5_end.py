@@ -19,17 +19,12 @@ def render_page5():
         col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
         with col_img2:
             st.image(image, width=600)
+
+    st.markdown("### Resultados e Relatório")    
     
-    st.markdown("---")
-    st.write("Você pode baixar um arquivo CSV com todas as suas respostas e os resultados da análise.")
-    
-    
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
+  
     with col1:
-        if st.button("Voltar para a página anterior"):
-            return -1
-    
-    with col2:
         csv_data = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
             # Convert DataFrame to CSV string with BOM for Excel compatibility
         csv_string = csv_data.to_csv(index=False, encoding='utf-8-sig')
@@ -44,8 +39,18 @@ def render_page5():
             use_container_width=True
         )    
 
-    with col3:
+    
+
+    st.markdown("---")
+    st.write("Você pode voltar para a página anterior ou recomeçar o questionário.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("⬅️ Voltar para a página anterior"):
+            return -1
+
+    with col2:
         # Button to go back to the first page
-        if st.button("Recomeçar o Questionário"):
+        if st.button("🔄️ Recomeçar o Questionário"):
             st.session_state['already_saved_to_sheet'] = False
             return 1

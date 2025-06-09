@@ -56,7 +56,7 @@ def render_page1():
     # "Next Page" button, centered
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        if st.button("Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
+        if st.button("➡️ Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
             data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
             append_data_to_sheet("Dados InovaFacil", data_to_save_df)
             # next_page()

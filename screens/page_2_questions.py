@@ -47,6 +47,7 @@ def get_initial_questions_data():
     return initial_data
 
 def render_page2():
+
     st.header("Questionário Rápido")
     st.write("Por favor, responda às perguntas abaixo para nos ajudar a entender melhor sua ideia. Suas respostas são cruciais para a análise.")
 
@@ -59,6 +60,7 @@ def render_page2():
     col1, col2 = st.columns(2)
     with col1:
         if st.button("⬅️ Voltar", key="prev_page_button_2"):
+            st.session_state.page1_button_clicked = False
             return -1
     with col2:
         if st.button("➡️ Próxima Página", key="next_page_button_2", disabled=not are_questions_complete):

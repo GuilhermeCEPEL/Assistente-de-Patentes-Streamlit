@@ -53,13 +53,20 @@ def render_page1():
     )
 
     st.markdown("---")
+    
+    if 'page1_button_clicked' not in st.session_state:
+        st.session_state.page1_button_clicked = False
+
     # "Next Page" button, centered
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
+        # button_disabled = not is_user_data_complete and st.session_state['data_registered_on_sheet']
+
         if st.button("➡️ Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
-            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
-            # next_page()
+            if not st.session_state.page1_button_clicked:
+                st.session_state.page1_button_clicked = True                     
+                register_data_on_sheet()
+                st.session_state.page1_button_clicked = False 
             return 1
         else:
             return 0

@@ -39,13 +39,14 @@ def render_page4():
         
         st.session_state['analise_realizada'] = True 
 
-        data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-        append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+        register_data_on_sheet()
     else:
         resultado_da_busca = st.session_state['resultado_da_busca']
         resultado_da_avaliacao = st.session_state['resultado_da_avaliacao']
         resultado_da_analise = st.session_state['resultado_da_analise']
 
+    titulo_score = None
+    titulo_avaliacao = None
     # Parse and display the evaluation result with scores and emojis
     if resultado_da_avaliacao and isinstance(resultado_da_avaliacao, str):
         # Try to split the first line as title, rest as text
@@ -59,8 +60,6 @@ def render_page4():
             titulo_score = float(title_score_match.group(1))
             titulo_text = title_score_match.group(2).strip()
             titulo_avaliacao = titulo_text
-        else:
-            titulo_score = None
         
         score_inovacao, just_inovacao = extract_score_and_justification(resultado_da_avaliacao, "Inovação")
         score_originalidade, just_originalidade = extract_score_and_justification(resultado_da_avaliacao, "Originalidade")
@@ -73,16 +72,19 @@ def render_page4():
 
     st.header("📊 Avaliação do Potencial de Proteção")
     # Display the score and text from the title in the subheader, with emoji and color
-    if titulo_score is not None:
-        color = "green" if titulo_score >= 7 else ("orange" if titulo_score >= 4 else "red")
-        emoji = "✅" if titulo_score >= 7 else ("⚠️" if titulo_score >= 4 else "❌")
-        st.markdown(f"<h3>{emoji} <span style='color:{color}'>{titulo_score}/10</span> — {titulo_avaliacao}</h3>", unsafe_allow_html=True)
-    else:
-        st.subheader(titulo_avaliacao)
+    if titulo_score is not None and titulo_avaliacao is not None :
+        if titulo_score is not None:
+            color = "green" if titulo_score >= 7 else ("orange" if titulo_score >= 4 else "red")
+            emoji = "✅" if titulo_score >= 7 else ("⚠️" if titulo_score >= 4 else "❌")
+            st.markdown(f"<h3>{emoji} <span style='color:{color}'>{titulo_score}/10</span> — {titulo_avaliacao}</h3>", unsafe_allow_html=True)
+        else:
+            st.subheader(titulo_avaliacao)
 
-    display_score("Inovação", score_inovacao, just_inovacao)
-    display_score("Originalidade", score_originalidade, just_originalidade)
-    display_score("Potencial de Propriedade Intelectual", score_potencial, just_potencial)
+        display_score("Inovação", score_inovacao, just_inovacao)
+        display_score("Originalidade", score_originalidade, just_originalidade)
+        display_score("Potencial de Propriedade Intelectual", score_potencial, just_potencial)
+    else:
+        st.subheader("Ocorreu um erro ao processar a avaliação. Favor rodar a análise novamente.")
 
     st.markdown("---")
 
@@ -106,16 +108,14 @@ def render_page4():
     with col1:
         # Button to regenerate the analysis
         if st.button("🔄 Reprocessar Análise", key="regenerate_analysis_button"):
-            with st.spinner("Reprocessando análise..."):
-                resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
-            st.session_state['resultado_da_busca'] = resultado_da_busca
-            st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
-            st.session_state['resultado_da_analise'] = resultado_da_analise
-            st.success("Análise reprocessada com sucesso!")
+            # with st.spinner("Reprocessando análise..."):
+            #     resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
+            # st.session_state['resultado_da_busca'] = resultado_da_busca
+            # st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
+            # st.session_state['resultado_da_analise'] = resultado_da_analise
+            # st.success("Análise reprocessada com sucesso!")
+            st.session_state['analise_realizada'] = False 
             st.rerun()
-            
-            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
     st.markdown("---")
     st.subheader("O que você deseja proteger?")
@@ -136,8 +136,7 @@ def render_page4():
             st.session_state['proximos_passos_texto'] = proximos_passos
             st.success("Próximos passos gerados com sucesso!")
 
-            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+            register_data_on_sheet()
 
         # Always display the generated "proximos_passos_texto" if it exists in session_state
         if 'proximos_passos_texto' in st.session_state and st.session_state['proximos_passos_texto']:
@@ -177,8 +176,7 @@ def render_page4():
                 # Se desejar, force um rerun para habilitar o botão de download imediatamente
                 st.rerun()
                 
-                data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-                append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+                register_data_on_sheet()
             except Exception as e:
                 st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
                 st.session_state.relatorio_texto_final = "" # Limpa para tentar novamente

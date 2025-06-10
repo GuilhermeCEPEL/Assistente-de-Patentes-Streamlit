@@ -101,15 +101,21 @@ def render_page4():
         else:
             st.info("Ocrreu algum erro durante a análise final está sendo processada, favor rodar a análise novamente.")
 
-    # Button to regenerate the analysis
-    if st.button("🔄 Reprocessar Análise", key="regenerate_analysis_button"):
-        with st.spinner("Reprocessando análise..."):
-            resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
-        st.session_state['resultado_da_busca'] = resultado_da_busca
-        st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
-        st.session_state['resultado_da_analise'] = resultado_da_analise
-        st.success("Análise reprocessada com sucesso!")
-        st.rerun()
+    col1, col2, col3   = st.columns([1, 2, 1])
+
+    with col1:
+        # Button to regenerate the analysis
+        if st.button("🔄 Reprocessar Análise", key="regenerate_analysis_button"):
+            with st.spinner("Reprocessando análise..."):
+                resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
+            st.session_state['resultado_da_busca'] = resultado_da_busca
+            st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
+            st.session_state['resultado_da_analise'] = resultado_da_analise
+            st.success("Análise reprocessada com sucesso!")
+            st.rerun()
+            
+            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
     st.markdown("---")
     st.subheader("O que você deseja proteger?")
@@ -129,6 +135,9 @@ def render_page4():
                 proximos_passos = agente_de_próximos_passos(f"Opção selecionada: {opcao}\n\nAnálise Detalhada:\n{resultado_da_analise}")
             st.session_state['proximos_passos_texto'] = proximos_passos
             st.success("Próximos passos gerados com sucesso!")
+
+            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
         # Always display the generated "proximos_passos_texto" if it exists in session_state
         if 'proximos_passos_texto' in st.session_state and st.session_state['proximos_passos_texto']:
@@ -167,6 +176,9 @@ def render_page4():
                 st.success("Relatório gerado com sucesso! Agora você pode baixá-lo.")
                 # Se desejar, force um rerun para habilitar o botão de download imediatamente
                 st.rerun()
+                
+                data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
+                append_data_to_sheet("Dados InovaFacil", data_to_save_df)
             except Exception as e:
                 st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
                 st.session_state.relatorio_texto_final = "" # Limpa para tentar novamente

@@ -38,9 +38,23 @@ def render_page3():
             data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
             append_data_to_sheet("Dados InovaFacil", data_to_save_df)
 
-        with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
-            st.markdown("### Recomendação do Assistente")
-            st.write(st.session_state['recomendacao_texto'])
+    with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
+        st.markdown("### Recomendação do Assistente")
+        st.write(st.session_state['recomendacao_texto'])
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        if st.button("🔄 Gerar nova recomendação", key="rerun_recommendation"):
+            with st.spinner("Gerando nova recomendação..."):
+                recomendacao = agente_recomendador(formulario)
+                st.session_state['recomendacao_texto'] = recomendacao
+                st.success("Nova recomendação gerada!")
+                st.rerun()
+
+    # with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
+    #     st.markdown("### Recomendação do Assistente")
+    #     st.write(st.session_state.get('recomendacao_texto', 'Nenhuma recomendação gerada ainda.'))
 
     st.header("Descreva Detalhadamente Sua Ideia")
     st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")

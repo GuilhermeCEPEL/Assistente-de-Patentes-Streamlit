@@ -18,13 +18,13 @@ def render_page5():
         # Centralize the image using columns
         col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
         with col_img2:
-            st.image(image, width=600)
+            st.image(image, use_container_width=True)
 
     st.markdown("### Resultados e Relatório")    
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([1,2,1])
   
-    with col1:
+    with col2:
         csv_data = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
             # Convert DataFrame to CSV string with BOM for Excel compatibility
         csv_string = csv_data.to_csv(index=False, encoding='utf-8-sig')

@@ -63,9 +63,9 @@ def render_page2():
     with col2:
         if st.button("➡️ Próxima Página", key="next_page_button_2", disabled=not are_questions_complete):
             # Clear recommendation related session state when moving back to description page
-            for key in ['recomendacao_gerada', 'recomendacao_texto']:
-                if key in st.session_state:
-                    del st.session_state[key]  
+            # for key in ['recomendacao_gerada', 'recomendacao_texto']:
+            #     if key in st.session_state:
+            #         del st.session_state[key]  
             return 1
         else:
             return 0

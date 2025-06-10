@@ -30,12 +30,14 @@ def render_page4():
         f"Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}",
     ])
 
-    if 'resultado_da_busca' not in st.session_state or 'resultado_da_avaliacao' not in st.session_state or 'resultado_da_analise' not in st.session_state:
+    if not st.session_state.get("analise_realizada", False):
         with st.spinner("⌛ Analisando as respostas... Por favor, aguarde."):
             resultado_da_busca, resultado_da_avaliacao, resultado_da_analise = analise_dos_resultados(repostas_descritivas, formulario_respostas)
         st.session_state['resultado_da_busca'] = resultado_da_busca
         st.session_state['resultado_da_avaliacao'] = resultado_da_avaliacao
         st.session_state['resultado_da_analise'] = resultado_da_analise
+        
+        st.session_state['analise_realizada'] = True 
 
         data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
         append_data_to_sheet("Dados InovaFacil", data_to_save_df)
@@ -137,7 +139,63 @@ def render_page4():
         st.info("Por favor, selecione uma opção para gerar os próximos passos.")
 
     st.markdown("---")
-    col1, col2, col3 = st.columns(3)
+
+    st.subheader("📄 Relatório INPI Provisório")
+    st.write("Clique no botão abaixo para gerar um relatório provisório com as informações coletadas e análises realizadas. Este relatório pode ser usado como base para o envio ao INPI.")
+
+    button_enabled = st.session_state.get('proximos_passos_texto')
+
+    if st.button(
+        "Gerar Relatório INPI Agora",
+        key="trigger_report_generation",
+        disabled=not button_enabled,
+        use_container_width=True
+    ):
+        # Este bloco SÓ é executado quando o botão 'Gerar Relatório INPI Agora' é clicado
+        with st.spinner("Gerando relatório... Isso pode levar alguns segundos."):
+            # Recupere as variáveis necessárias do session_state
+            # É fundamental que essas variáveis estejam armazenadas no session_state
+            # pelas páginas anteriores ou em um passo anterior desta página.
+            # opcao_selecionada = st.session_state.get('opcao_de_protecao', "Patente de Invenção") # Exemplo: nome da sua variável no session_state
+            # respostas_descritivas_salvas = st.session_state.get('respostas_descritivas_geradas', "") # Exemplo
+            # formulario_respostas_salvas = st.session_state.get('formulario_respostas_para_relatorio', "") # Exemplo
+
+            # Chame a função do agente de geração
+            try:
+                relatorio_gerado = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
+                st.session_state.relatorio_texto_final = relatorio_gerado
+                st.success("Relatório gerado com sucesso! Agora você pode baixá-lo.")
+                # Se desejar, force um rerun para habilitar o botão de download imediatamente
+                st.rerun()
+            except Exception as e:
+                st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
+                st.session_state.relatorio_texto_final = "" # Limpa para tentar novamente
+    
+    # Display the generated report in an expander if it exists
+    if 'relatorio_texto_final' in st.session_state and st.session_state['relatorio_texto_final']:
+        with st.expander("📄 Visualizar Relatório INPI Gerado", expanded=False):
+            st.markdown("### Relatório INPI Gerado:")
+            st.write(st.session_state['relatorio_texto_final'])
+
+    relatorio_para_download = st.session_state.get('relatorio_texto_final', '').encode('utf-8')
+    download_disabled = not bool(relatorio_para_download)
+
+    if st.download_button(
+        label="💾 Baixar Relatório INPI (TXT)",
+        key="final_download_report_button", # Mudei a chave para evitar conflito com a anterior
+        data=relatorio_para_download,
+        file_name=f"relatorio_inovafacil_{date.today()}.txt",
+        mime="text/plain", # Use text/plain para arquivos .txt
+        help="Baixe o relatório provisório gerado para o INPI.",
+        use_container_width=True,
+        disabled=download_disabled # Desabilita se não houver relatório gerado
+    ):
+    # Este bloco é executado DEPOIS que o download é iniciado no navegador.
+    # Nenhuma lógica de geração deve estar aqui.
+        pass
+
+    st.markdown("---")
+    col1, col2 = st.columns(2)
     with col1:
         if st.button("⬅️ Voltar para Descrição da Ideia", key="prev_page_button_4"):
             return -1
@@ -155,52 +213,6 @@ def render_page4():
         #     disabled=button_disabled
         # ):
         #     pass
-        button_enabled = st.session_state.get('proximos_passos_texto')
-
-        if st.button(
-            "Gerar Relatório INPI Agora",
-            key="trigger_report_generation",
-            disabled=not button_enabled,
-            use_container_width=True
-        ):
-            # Este bloco SÓ é executado quando o botão 'Gerar Relatório INPI Agora' é clicado
-            with st.spinner("Gerando relatório... Isso pode levar alguns segundos."):
-                # Recupere as variáveis necessárias do session_state
-                # É fundamental que essas variáveis estejam armazenadas no session_state
-                # pelas páginas anteriores ou em um passo anterior desta página.
-                # opcao_selecionada = st.session_state.get('opcao_de_protecao', "Patente de Invenção") # Exemplo: nome da sua variável no session_state
-                # respostas_descritivas_salvas = st.session_state.get('respostas_descritivas_geradas', "") # Exemplo
-                # formulario_respostas_salvas = st.session_state.get('formulario_respostas_para_relatorio', "") # Exemplo
-
-                # Chame a função do agente de geração
-                try:
-                    relatorio_gerado = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
-                    st.session_state.relatorio_texto_final = relatorio_gerado
-                    st.success("Relatório gerado com sucesso! Agora você pode baixá-lo.")
-                    # Se desejar, force um rerun para habilitar o botão de download imediatamente
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
-                    st.session_state.relatorio_texto_final = "" # Limpa para tentar novamente
         
-        relatorio_para_download = st.session_state.get('relatorio_texto_final', '').encode('utf-8')
-        download_disabled = not bool(relatorio_para_download)
-
-        if st.download_button(
-            label="💾 Baixar Relatório INPI (TXT)",
-            key="final_download_report_button", # Mudei a chave para evitar conflito com a anterior
-            data=relatorio_para_download,
-            file_name=f"relatorio_inovafacil_{date.today()}.txt",
-            mime="text/plain", # Use text/plain para arquivos .txt
-            help="Baixe o relatório provisório gerado para o INPI.",
-            use_container_width=True,
-            disabled=download_disabled # Desabilita se não houver relatório gerado
-        ):
-        # Este bloco é executado DEPOIS que o download é iniciado no navegador.
-        # Nenhuma lógica de geração deve estar aqui.
-            pass
-
-
-    with col3:
         if st.button("➡️ Finalizar e Enviar Respostas", key="finalize_button"):
             return 1

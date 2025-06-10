@@ -86,8 +86,8 @@ def render_page3():
             return -1  # Go back to the previous page
     with col2:
         if st.button("➡️ Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
-            # Clear analysis related session state when moving to analysis page to ensure fresh run
-            for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
-                if key in st.session_state:
-                    del st.session_state[key]
+            # # Clear analysis related session state when moving to analysis page to ensure fresh run
+            # for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
+            #     if key in st.session_state:
+            #         del st.session_state[key]
             return 1  # Indicate to move to the next page for analysis

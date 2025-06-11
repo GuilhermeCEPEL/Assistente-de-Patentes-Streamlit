@@ -46,6 +46,7 @@ def get_initial_questions_data():
             # Adicione outros tipos de perguntas aqui se tiver (ex: text_input = "")
     return initial_data
 
+
 def render_page2():
     
     if st.session_state.get('initial_info_registered') is False:       

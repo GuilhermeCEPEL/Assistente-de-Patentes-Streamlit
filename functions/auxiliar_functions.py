@@ -111,7 +111,7 @@ def analise_dos_resultados(repostas_descritivas, formulario):
 
     info_placeholder.info("Avaliando o potencial da ideia...")
     progress_bar.progress(0.75)
-    resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
+    resultado_da_avaliacao = agente_avaliador(f"{repostas_descritivas}\n\n{resultado_da_revisao}")
 
     info_placeholder.info("Finalizando a análise e gerando conclusões...")
     progress_bar.progress(0.95)

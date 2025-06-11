@@ -28,7 +28,8 @@ def render_page3():
         f"Você já desenvolveu um protótipo ou MVP da solução? {'Sim' if st.session_state.questionsData['q10'] else 'Não'}",
     ])
 
-    if 'recomendacao_gerada' not in st.session_state:
+    if not st.session_state.get("recomendacao_gerada", False):
+    # if 'recomendacao_gerada' not in st.session_state:
         with st.spinner("Gerando recomendação inicial com base no questionário..."):
             recomendacao = agente_recomendador(formulario)
 
@@ -45,11 +46,8 @@ def render_page3():
 
     with col1:
         if st.button("🔄 Gerar nova recomendação", key="rerun_recommendation"):
-            with st.spinner("Gerando nova recomendação..."):
-                recomendacao = agente_recomendador(formulario)
-                st.session_state['recomendacao_texto'] = recomendacao
-                st.success("Nova recomendação gerada!")
-                st.rerun()
+            st.session_state['recomendacao_gerada'] = False
+            st.rerun()
 
     # with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
     #     st.markdown("### Recomendação do Assistente")

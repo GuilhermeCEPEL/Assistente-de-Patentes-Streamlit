@@ -63,10 +63,14 @@ def render_page1():
         # button_disabled = not is_user_data_complete and st.session_state['data_registered_on_sheet']
 
         if st.button("➡️ Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
-            if not st.session_state.page1_button_clicked:
-                st.session_state.page1_button_clicked = True                     
-                register_data_on_sheet()
-                st.session_state.page1_button_clicked = False 
+            st.session_state.initial_info_registered = False 
+            # if 'initial_info_registered' not in st.session_state:
+                
+            # else:
+            #     st.session_state.initial_info_registered = True
+            # if not st.session_state.page1_button_clicked:
+            #     st.session_state.page1_button_clicked = True           
+            #     st.session_state.page1_button_clicked = False 
             return 1
         else:
             return 0

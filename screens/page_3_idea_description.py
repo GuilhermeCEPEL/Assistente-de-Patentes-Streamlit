@@ -2,6 +2,8 @@ import streamlit as st
 import os
 import re
 from PIL import Image
+from time import sleep
+import streamlit.components.v1 as components
 
 from functions.agents_functions import *
 from functions.sheet_functions import *
@@ -9,6 +11,7 @@ from functions.auxiliar_functions import *
 
 
 def render_page3():
+
     # Construct the full form input for the recommender agent
     formulario = "\n".join([
         f"**Natureza da Ideia**",
@@ -32,39 +35,52 @@ def render_page3():
             st.session_state['recomendacao_texto'] = recomendacao
             st.session_state['recomendacao_gerada'] = True
 
-            data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
-            append_data_to_sheet("Dados InovaFacil", data_to_save_df)
+            register_data_on_sheet()
 
-        with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
-            st.markdown("### Recomendação do Assistente")
-            st.write(st.session_state['recomendacao_texto'])
+    with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
+        st.markdown("### Recomendação do Assistente")
+        st.write(st.session_state['recomendacao_texto'])
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        if st.button("🔄 Gerar nova recomendação", key="rerun_recommendation"):
+            with st.spinner("Gerando nova recomendação..."):
+                recomendacao = agente_recomendador(formulario)
+                st.session_state['recomendacao_texto'] = recomendacao
+                st.success("Nova recomendação gerada!")
+                st.rerun()
+
+    # with st.expander("💡 Veja a Recomendação Inicial sobre sua Ideia 💡", expanded=False):
+    #     st.markdown("### Recomendação do Assistente")
+    #     st.write(st.session_state.get('recomendacao_texto', 'Nenhuma recomendação gerada ainda.'))
 
     st.header("Descreva Detalhadamente Sua Ideia")
     st.write("Forneça o máximo de detalhes possível nos campos abaixo para uma análise mais precisa. Campos com * são obrigatórios.")
 
     st.session_state.ideaData['main'] = st.text_area(
-        "Descrição da sua ideia ou invenção (o que é, para que serve, como funciona): *",
+        "❓ Descrição da sua ideia ou invenção (o que é, para que serve, como funciona): *",
         value=st.session_state.ideaData['main'],
         height=180,
         help="Ex: 'É um sistema de irrigação inteligente que utiliza sensores de umidade para otimizar o uso da água em plantações agrícolas, reduzindo o desperdício em até 30%.'"
     )
 
     st.session_state.ideaData['differential'] = st.text_area(
-        "Qual é o diferencial ou inovação da sua ideia? *",
+        "❓ Qual é o diferencial ou inovação da sua ideia? *",
         value=st.session_state.ideaData['differential'],
         height=150,
         help="Ex: 'Seu diferencial está no algoritmo preditivo que antecipa as necessidades hídricas da planta com base em dados climáticos e do solo, algo que as soluções atuais não oferecem.'"
     )
 
     st.session_state.ideaData['dev'] = st.text_area(
-        "Você já desenvolveu algo relacionado a essa ideia? (protótipo, código, apresentação, etc.)",
+        "❓ Você já desenvolveu algo relacionado a essa ideia? (protótipo, código, apresentação, etc.)",
         value=st.session_state.ideaData['dev'],
         height=120,
         help="Ex: 'Sim, desenvolvi um protótipo em escala reduzida e um software de controle em Python.'"
     )
 
     st.session_state.ideaData['sector'] = st.text_area(
-        "Qual é o setor de aplicação da sua ideia? *",
+        "❓ Qual é o setor de aplicação da sua ideia? *",
         value=st.session_state.ideaData['sector'],
         height=100,
         help="Ex: 'Agricultura, automação, energia renovável.'"
@@ -79,12 +95,8 @@ def render_page3():
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Voltar", key="prev_page_button_3"):
+        if st.button("⬅️ Voltar", key="prev_page_button_3"):
             return -1  # Go back to the previous page
     with col2:
-        if st.button("Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
-            # Clear analysis related session state when moving to analysis page to ensure fresh run
-            for key in ['resultado_da_avaliacao', 'resultado_da_busca', 'resultado_da_analise', 'proximos_passos_texto']:
-                if key in st.session_state:
-                    del st.session_state[key]
+        if st.button("➡️ Analisar Ideia", key="next_page_button_3", disabled=not are_description_fields_complete):
             return 1  # Indicate to move to the next page for analysis

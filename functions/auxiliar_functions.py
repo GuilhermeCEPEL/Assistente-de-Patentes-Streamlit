@@ -76,7 +76,7 @@ def display_questionnaire_section(title, questions_list):
       default_index = 1 # 'Não'
 
     response = st.radio(
-      q['text'],
+      f"❓ {q['text']}",
       ('Sim', 'Não'),
       key=f"radio_{q['id']}", # Unique key for each radio button
       index=default_index
@@ -137,6 +137,9 @@ def clean_name_input(name):
 def generate_relatorio(opcao, repostas_descritivas, formulario_respostas):
     relatorio = agente_gerador_de_relatorio(f"Opção de patente: {opcao}\n\n{repostas_descritivas}\n\n{formulario_respostas}")       
     st.session_state['relatorio_texto'] = relatorio
+    register_data_on_sheet()
+    return relatorio
+
+def register_data_on_sheet():
     data_to_save_df = info_to_data_frame(st.session_state.userData, st.session_state.questionsData, st.session_state.ideaData)
     append_data_to_sheet("Dados InovaFacil", data_to_save_df)
-    return relatorio

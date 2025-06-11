@@ -136,7 +136,7 @@ def render_page4():
             st.session_state['proximos_passos_texto'] = proximos_passos
             st.success("Próximos passos gerados com sucesso!")
 
-            register_data_on_sheet()
+            # register_data_on_sheet()
 
         # Always display the generated "proximos_passos_texto" if it exists in session_state
         if 'proximos_passos_texto' in st.session_state and st.session_state['proximos_passos_texto']:
@@ -161,14 +161,6 @@ def render_page4():
     ):
         # Este bloco SÓ é executado quando o botão 'Gerar Relatório INPI Agora' é clicado
         with st.spinner("Gerando relatório... Isso pode levar alguns segundos."):
-            # Recupere as variáveis necessárias do session_state
-            # É fundamental que essas variáveis estejam armazenadas no session_state
-            # pelas páginas anteriores ou em um passo anterior desta página.
-            # opcao_selecionada = st.session_state.get('opcao_de_protecao', "Patente de Invenção") # Exemplo: nome da sua variável no session_state
-            # respostas_descritivas_salvas = st.session_state.get('respostas_descritivas_geradas', "") # Exemplo
-            # formulario_respostas_salvas = st.session_state.get('formulario_respostas_para_relatorio', "") # Exemplo
-
-            # Chame a função do agente de geração
             try:
                 relatorio_gerado = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
                 st.session_state.relatorio_texto_final = relatorio_gerado

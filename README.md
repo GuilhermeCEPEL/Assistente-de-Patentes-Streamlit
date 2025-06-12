@@ -44,7 +44,19 @@ Essa combinação de interface intuitiva e inteligência artificial permite que 
 
 ---
 
-## ⚠️ Aviso Importante
+## ❗ Importante: Sobre a Geração de IA ❗
+
+É fundamental entender que, embora os agentes de IA sejam poderosos, eles podem ocasionalmente:
+* **"Alucinar":** Gerar informações que parecem plausíveis, mas são incorretas, imprecisas ou inventadas.
+* **Gerar Respostas Indesejadas:** Apresentar conteúdos que não são exatamente o que você esperava, ou que poderiam ser aprimorados.
+
+**Se a resposta gerada não for satisfatória, não hesite em:**
+* **Gerar Novamente:** A aplicação permite que você refaça a análise ou a geração de texto (clicando no botão novamente ou interagindo com a interface) para obter uma nova tentativa.
+* **Revisar Inputs:** Verifique se as informações que você forneceu são claras e completas, pois isso pode impactar a qualidade da saída da IA.
+
+---
+
+## ⚠️ Aviso Legal Importante
 
 Este assistente de IA é uma **ferramenta de apoio** e **não substitui** a consulta a profissionais especializados em propriedade intelectual, como advogados ou agentes de patentes. As informações e recomendações geradas são para fins informativos e de pré-análise. O processo de patenteamento envolve nuances legais e técnicas que exigem expertise profissional.
 

@@ -186,14 +186,13 @@ def agente_buscador_de_PI(topico):
 
     **Formato obrigatório para os resultados:**
 
-    Descrição da ideia do usuário:
+    1. Descrição da ideia do usuário:
 
-    - Resuma a ideia do usuário em um parágrafo curto e objetivo.
+    **Resuma a ideia do usuário em um parágrafo curto e objetivo**
 
     ------------------------------------------------------------------------------------
-    **Resultados da Busca:**
     
-    1. Lista de Propriedades Intelectuais Brasileiras
+    2. Lista de Propriedades Intelectuais Brasileiras
 
       - Identificador do Documento:  
         - Título da PI:  
@@ -204,7 +203,7 @@ def agente_buscador_de_PI(topico):
 
     ------------------------------------------------------------------------------------
 
-    2. Lista de Propriedades Intelectuais Internacionais
+    3. Lista de Propriedades Intelectuais Internacionais
 
       - Identificador do Documento:  
         - Título da PI:  

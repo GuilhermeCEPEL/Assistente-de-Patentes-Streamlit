@@ -186,6 +186,13 @@ def agente_buscador_de_PI(topico):
 
     **Formato obrigatório para os resultados:**
 
+    Descrição da ideia do usuário:
+
+    - Resuma a ideia do usuário em um parágrafo curto e objetivo.
+
+    ------------------------------------------------------------------------------------
+    **Resultados da Busca:**
+    
     1. Lista de Propriedades Intelectuais Brasileiras
 
       - Identificador do Documento:  
@@ -208,7 +215,7 @@ def agente_buscador_de_PI(topico):
 
     Não se apresente no início do resultado.
 
-    A resposta deve ser escrita em português do Brasil.
+    O conteúdo deve ser gerado em português do Brasil.
     """
   )
 
@@ -253,7 +260,7 @@ def agente_revisor(topico):
 
     Não se apresente no início do resultado.
     
-    A resposta deve ser escrita em português do Brasil.
+    O conteúdo deve ser gerado em português do Brasil.
     """
   )
 

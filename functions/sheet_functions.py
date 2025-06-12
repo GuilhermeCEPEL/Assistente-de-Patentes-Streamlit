@@ -22,7 +22,7 @@ def get_spreadsheet(sheet_name):
 
 def append_data_to_sheet(sheet_name, dataframe):
   # Use uma chave de sessão para controlar se já foi salvo antes
-  if 'already_saved_to_sheet' not in st.session_state:
+  if 'already_saved_to_sheet' not in st.session_state or st.session_state['already_saved_to_sheet'] == False:
     try:
       spreadsheet = get_spreadsheet(sheet_name)
       worksheet = spreadsheet.sheet1 # Ou use spreadsheet.worksheet("Nome da sua Aba")

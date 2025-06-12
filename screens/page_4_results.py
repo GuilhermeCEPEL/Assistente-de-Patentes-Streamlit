@@ -163,7 +163,7 @@ def render_page4():
         with st.spinner("Gerando relatório... Isso pode levar alguns segundos."):
             try:
                 relatorio_gerado = generate_relatorio(opcao, repostas_descritivas, formulario_respostas)
-                st.session_state.relatorio_texto_final = relatorio_gerado
+                st.session_state['relatorio_texto_final'] = relatorio_gerado
                 st.success("Relatório gerado com sucesso! Agora você pode baixá-lo.")
                 # Se desejar, force um rerun para habilitar o botão de download imediatamente
                 st.rerun()
@@ -171,7 +171,7 @@ def render_page4():
                 register_data_on_sheet()
             except Exception as e:
                 st.error(f"Ocorreu um erro ao gerar o relatório: {e}")
-                st.session_state.relatorio_texto_final = "" # Limpa para tentar novamente
+                st.session_state['relatorio_texto_final'] = "" # Limpa para tentar novamente
     
     # Display the generated report in an expander if it exists
     if 'relatorio_texto_final' in st.session_state and st.session_state['relatorio_texto_final']:

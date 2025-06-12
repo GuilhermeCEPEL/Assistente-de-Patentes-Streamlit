@@ -53,4 +53,8 @@ def render_page5():
         # Button to go back to the first page
         if st.button("🔄️ Recomeçar o Questionário"):
             st.session_state['already_saved_to_sheet'] = False
+            st.session_state['recomendacao_gerada'] = False
+            st.session_state['analise_realizada'] = False
+            st.session_state['proximos_passos_texto'] = ''
+            st.session_state.relatorio_texto_final = ""
             return 1

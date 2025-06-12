@@ -103,7 +103,7 @@ def analise_dos_resultados(repostas_descritivas, formulario):
 
     info_placeholder.info("Buscando patentes similares...")
     progress_bar.progress(0.15)
-    resultado_da_busca = agente_buscador_de_PI(f"{repostas_descritivas}\n\n{formulario}")
+    resultado_da_busca = agente_buscador_de_PI(f"{repostas_descritivas}\n\n####################\n\n{formulario}")
 
     info_placeholder.info("Revisando a lista de propriedades intelectuais encontradas...")
     progress_bar.progress(0.5)
@@ -111,11 +111,11 @@ def analise_dos_resultados(repostas_descritivas, formulario):
 
     info_placeholder.info("Avaliando o potencial da ideia...")
     progress_bar.progress(0.75)
-    resultado_da_avaliacao = agente_avaliador(f"{resultado_da_revisao}\n\n{formulario}")
+    resultado_da_avaliacao = agente_avaliador(f"{repostas_descritivas}\n\n####################\n\n{resultado_da_revisao}")
 
     info_placeholder.info("Finalizando a análise e gerando conclusões...")
     progress_bar.progress(0.95)
-    resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n{resultado_da_avaliacao}")
+    resultado_da_analise = agente_analista(f"{resultado_da_revisao}\n\n####################\n\n{resultado_da_avaliacao}")
 
     info_placeholder.empty()  # Remove the info message after processing
     progress_bar.empty()      # Remove the progress bar

@@ -73,7 +73,11 @@ def render_page1():
         # button_disabled = not is_user_data_complete and st.session_state['data_registered_on_sheet']
 
         if st.button("➡️ Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
-            st.session_state.initial_info_registered = False 
-            return 1
+            
+            if st.session_state.ideaData['analysis_type'] == "PDI ANEEL":
+                st.session_state.currentPage = 5
+            else:
+                st.session_state.initial_info_registered = False 
+                return 1
         else:
             return 0

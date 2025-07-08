@@ -45,11 +45,21 @@ def render_page1():
         if not is_valid_email(st.session_state.userData['email']):
             st.warning("Por favor, insira um e-mail válido.")
 
-    # Check if all user data fields are filled and valid
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.session_state.ideaData['analysis_type'] = st.selectbox(
+            "Selecione o tipo de pesquisa desejada:",
+            options=["Selecione uma opção", "Análise geral", "PDI ANEEL"],
+            index=["Selecione uma opção", "Análise geral", "PDI ANEEL"].index(st.session_state.ideaData.get('analysis_type', "Selecione uma opção"))
+        )
+
+    # Check if all user data fields are filled and valid, including analysis_type selection
     is_user_data_complete = (
         bool(st.session_state.userData['name'].strip()) and
         bool(st.session_state.userData['matricula']) and len(st.session_state.userData['matricula']) == 7 and
-        bool(st.session_state.userData['email'].strip()) and is_valid_email(st.session_state.userData['email'])
+        bool(st.session_state.userData['email'].strip()) and is_valid_email(st.session_state.userData['email']) and
+        st.session_state.ideaData['analysis_type'] != "Selecione uma opção"
     )
 
     st.markdown("---")
@@ -64,13 +74,6 @@ def render_page1():
 
         if st.button("➡️ Continuar", key="next_page_button_1", disabled=not is_user_data_complete):
             st.session_state.initial_info_registered = False 
-            # if 'initial_info_registered' not in st.session_state:
-                
-            # else:
-            #     st.session_state.initial_info_registered = True
-            # if not st.session_state.page1_button_clicked:
-            #     st.session_state.page1_button_clicked = True           
-            #     st.session_state.page1_button_clicked = False 
             return 1
         else:
             return 0

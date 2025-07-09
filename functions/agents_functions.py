@@ -445,3 +445,28 @@ def agente_pesquisa_pdi_aneel(topico):
   resultado_do_agente = call_agent(agente, entrada_do_agente)
 
   return resultado_do_agente 
+
+def agente_sugestor_de_projetos(topico):
+    agente = Agent(
+        name="agente_sugestor_de_projetos",
+        model="gemini-2.5-flash-preview-05-20",
+        description="Agente que sugere projetos de PDI da ANEEL com base no tópico e análise fornecida.",
+        tools=[google_search],
+        instruction="""
+        Seu papel é analisar a pesquisa realizada por outro agente junto com o tópico fornecido pelo usuário e
+        sugerir possíveis projetos de PDI da ANEEL que possam estar relacionados ao tópico.
+
+        Você deve considerar a lista de projetos que foram encontrados pelo agente de pesquisa e verificar se existem
+        recomendações ou sugestões de projetos futuros que possam resultar em um novo projeto de PDI.
+
+        Caso não encontre recomendações ou sugestões de projetos, você deve sugerir possibilidades de projetos de PDI
+        que poderiam ser desenvolvidos com base no tópico fornecido.
+        
+        Não se introduza no início da resposta. Vá direto ao ponto com os resultados da pesquisa.
+        """
+    )
+
+    entrada_do_agente = f"Tópico e lista de projetos: {topico}"
+    resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+    return resultado_do_agente

@@ -179,6 +179,13 @@ if 'ideaData' not in st.session_state:
       'sector': '',
   }
 
+if 'aneelData' not in st.session_state:
+  st.session_state.aneelData = {
+      'topico': '',
+      'resultado_busca': '',
+      'resultado_sugestao': '',
+  }
+
 # Display the logo image centered at the top of the page
 col_logo, col_title, col_empty = st.columns([1, 2, 1])
 with col_logo:

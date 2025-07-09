@@ -8,48 +8,45 @@ def render_page2_aneel():
 
     st.write("Informe o tópico de interesse para pesquisar projetos de Pesquisa, Desenvolvimento e Inovação (PDI) regulados ou financiados pela ANEEL.")
 
-    if 'topico_pdi_aneel' not in st.session_state:
-        st.session_state['topico_pdi_aneel'] = ""
-
-    topico_input = st.text_area(
+    st.session_state.aneelData['topico'] = st.text_area(
         "Tópico:", 
-        value=st.session_state['topico_pdi_aneel'], 
+        value=st.session_state.aneelData['topico'], 
         height=150
     )
-    if topico_input != st.session_state['topico_pdi_aneel']:
-        st.session_state['topico_pdi_aneel'] = topico_input
-    # topico = st.session_state['topico_pdi_aneel']
+    # if topico_input != st.session_state['topico']:
+    #     st.session_state['topico'] = topico_input
+    # topico = st.session_state['topico']
 
-    if st.button("Pesquisar", disabled= not st.session_state['topico_pdi_aneel'].strip()):
+    if st.button("Pesquisar", disabled= not st.session_state.aneelData['topico'].strip()):
         with st.spinner("Pesquisando..."):
-            resultado_da_busca_pdi_aneel, resultado_da_sugestao = analise_de_projetos_aneel(f"{st.session_state['topico_pdi_aneel']}")
-            st.session_state['resultado_da_busca_pdi_aneel'] = resultado_da_busca_pdi_aneel
-            st.session_state['resultado_da_sugestao_pdi_aneel'] = resultado_da_sugestao
+            resultado_busca, resultado_da_sugestao = analise_de_projetos_aneel(f"{st.session_state.aneelData['topico']}")
+            st.session_state.aneelData['resultado_busca'] = resultado_busca
+            st.session_state.aneelData['resultado_sugestao'] = resultado_da_sugestao
 
-    if 'resultado_da_busca_pdi_aneel' in st.session_state and st.session_state['resultado_da_busca_pdi_aneel']:        
+    if 'resultado_busca' in st.session_state and st.session_state.aneelData['resultado_busca']:        
         with st.expander("📃 Veja o resultado da busca por PDIs sobre esse tópico 📃", expanded=False):
             st.markdown("### Resultados da Pesquisa:")
-            st.write(st.session_state['resultado_da_busca_pdi_aneel'])
+            st.write(st.session_state.aneelData['resultado_busca'])
 
-    if 'resultado_da_sugestao_pdi_aneel' in st.session_state and st.session_state['resultado_da_sugestao_pdi_aneel']:
+    if 'resultado_sugestao' in st.session_state and st.session_state.aneelData['resultado_sugestao']:
         with st.expander("💡 Veja a sugestão de projetos relacionados 💡", expanded=False):
             st.markdown("### Sugestão de Projetos Relacionados:")
-            st.write(st.session_state['resultado_da_sugestao_pdi_aneel'])
+            st.write(st.session_state.aneelData['resultado_sugestao'])
 
     if (
-        st.session_state['topico_pdi_aneel'].strip()
-        and 'resultado_da_busca_pdi_aneel' in st.session_state
-        and 'resultado_da_sugestao_pdi_aneel' in st.session_state
-        and st.session_state['resultado_da_busca_pdi_aneel']
-        and st.session_state['resultado_da_sugestao_pdi_aneel']
+        st.session_state.aneelData['topico'].strip()
+        and 'resultado_busca' in st.session_state
+        and 'resultado_sugestao' in st.session_state
+        and st.session_state.aneelData['resultado_busca']
+        and st.session_state.aneelData['resultado_sugestao']
     ):
         download_content = (
             "Tópico de Interesse:\n"
-            f"{st.session_state['topico_pdi_aneel']}\n\n"
+            f"{st.session_state['topico']}\n\n"
             "Resultados da Pesquisa:\n"
-            f"{st.session_state['resultado_da_busca_pdi_aneel']}\n\n"
+            f"{st.session_state.aneelData['resultado_busca']}\n\n"
             "Sugestão de Projetos Relacionados:\n"
-            f"{st.session_state['resultado_da_sugestao_pdi_aneel']}\n"
+            f"{st.session_state.aneelData['resultado_sugestao']}\n"
         )
         st.download_button(
             label="📥 Baixar resultados (.txt)",

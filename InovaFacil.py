@@ -8,6 +8,7 @@ from functions.sheet_functions import *
 from functions.auxiliar_functions import *
 from screens.page_1_user_data import render_page1
 from screens.page_2_questions import render_page2, get_initial_questions_data
+from screens.page_2_aneel import render_page2_aneel
 from screens.page_3_idea_description import render_page3
 from screens.page_4_results import render_page4
 from screens.page_5_end import render_page5
@@ -178,6 +179,13 @@ if 'ideaData' not in st.session_state:
       'sector': '',
   }
 
+if 'aneelData' not in st.session_state:
+  st.session_state.aneelData = {
+      'topico': '',
+      'resultado_busca': '',
+      'resultado_sugestao': '',
+  }
+
 # Display the logo image centered at the top of the page
 col_logo, col_title, col_empty = st.columns([1, 2, 1])
 with col_logo:
@@ -191,6 +199,7 @@ def navigate_pages():
         2: render_page3,
         3: render_page4,
         4: render_page5,
+        5: render_page2_aneel,  # Página de pesquisa ANEEL
     }
 
     current_page_renderer = page_functions.get(st.session_state.currentPage)

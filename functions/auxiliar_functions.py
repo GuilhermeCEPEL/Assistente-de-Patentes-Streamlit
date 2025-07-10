@@ -66,6 +66,33 @@ def info_to_data_frame(user_data, questions_data, idea_data):
   df = pd.DataFrame([combined_data])
   return df
 
+def analise_de_projetos_aneel(topico):
+    # Set a session state flag to indicate analysis is running
+    st.session_state['analysis_running'] = True
+
+    info_placeholder = st.empty()
+    info_placeholder.info("🔎 Analisando o tópico... Por favor, aguarde.")
+
+    if not topico.strip():
+        info_placeholder.error("⚠️ O tópico não pode estar vazio para a pesquisa.")
+        st.session_state['analysis_running'] = False
+        return ""
+
+    progress_bar = st.progress(0, text="Iniciando pesquisa...")
+
+    info_placeholder.info("Buscando projetos de PDI relacionados ao tópico...")
+    progress_bar.progress(0.5)
+    resultado_da_busca = agente_pesquisa_pdi_aneel(topico)
+
+    info_placeholder.info("Revisando os projetos encontrados...")
+    progress_bar.progress(0.8)
+    resultado_da_sugestao = agente_sugestor_de_projetos(resultado_da_busca)
+
+    info_placeholder.empty()  # Remove the info message after processing
+    progress_bar.empty()      # Remove the progress bar
+    st.session_state['analysis_running'] = False
+    return resultado_da_busca, resultado_da_sugestao
+
 def display_questionnaire_section(title, questions_list):
   st.subheader(f"**{title}**")
   for q in questions_list:

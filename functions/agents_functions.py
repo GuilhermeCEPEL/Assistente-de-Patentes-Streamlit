@@ -404,3 +404,69 @@ def agente_de_próximos_passos(topico):
   resultado_do_agente = call_agent(agente, entrada_do_agente)
 
   return resultado_do_agente 
+
+def agente_pesquisa_pdi_aneel(topico):    
+  agente = Agent(
+        name="agente_pesquisa_pdi_aneel",
+        model="gemini-2.5-flash-preview-05-20", # Mantendo o mesmo modelo do seu exemplo
+        description="Agente especializado em pesquisar e identificar projetos de Pesquisa, Desenvolvimento e Inovação (PDI) regulados ou financiados pela ANEEL, com base em um tópico de interesse.",
+        tools=[google_search], # Usaremos Google Search para rastrear diversas fontes
+        instruction="""
+        Seu papel é atuar como um especialista em identificação de projetos de PDI da ANEEL.
+        Sua principal tarefa é vasculhar a internet utilizando as ferramentas de busca disponíveis
+        para encontrar **projetos de PDI, artigos, relatórios ou publicações que mencionem a ANEEL**
+        e que estejam diretamente relacionados ao tópico fornecido pelo usuário.
+
+        Ao realizar a pesquisa, concentre-se em:
+        1. **Fontes oficiais e acadêmicas:** Priorize buscas em sites da ANEEL, empresas do setor elétrico
+           que desenvolvem PDI (ex: Eletrobras, CPFL, Light, Neoenergia, etc.), universidades, centros de pesquisa,
+           bases de dados de artigos científicos (como Scielo, Google Scholar) e repositórios de teses e dissertações.
+        2. **Termos-chave:** Use o tópico fornecido e sinônimos relevantes, além de termos como
+           "PDI ANEEL", "projeto de pesquisa ANEEL", "inovação energética ANEEL" para refinar a busca.
+        3. **Extração de informações:** Para cada projeto relevante encontrado, tente extrair o máximo de informações possível,
+           como:
+           - **Nome do Projeto:** (se disponível)
+           - **Empresa/Instituição Executora:**
+           - **Ano/Período de Execução:** (se disponível)
+           - **Breve descrição:** (o que o projeto aborda)
+           - **Link/Fonte:** (onde a informação foi encontrada)
+
+        **Seu resultado final deve ser uma lista concisa dos projetos de PDI da ANEEL encontrados que se relacionam com o tópico,
+        apresentando as informações extraídas de forma clara e organizada (pode ser em formato de lista ou tabela).
+        Se não encontrar projetos diretos, você pode listar artigos ou iniciativas que abordem o tema sob o guarda-chuva da ANEEL.**
+
+        Não se introduza no início da resposta. Vá direto ao ponto com os resultados da pesquisa.
+        """
+    )
+  
+  entrada_do_agente= f"Tópico: {topico}"
+  # Executa o agente
+
+  resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+  return resultado_do_agente 
+
+def agente_sugestor_de_projetos(topico):
+    agente = Agent(
+        name="agente_sugestor_de_projetos",
+        model="gemini-2.5-flash-preview-05-20",
+        description="Agente que sugere projetos de PDI da ANEEL com base no tópico e análise fornecida.",
+        tools=[google_search],
+        instruction="""
+        Seu papel é analisar a pesquisa realizada por outro agente junto com o tópico fornecido pelo usuário e
+        sugerir possíveis projetos de PDI da ANEEL que possam estar relacionados ao tópico.
+
+        Você deve considerar a lista de projetos que foram encontrados pelo agente de pesquisa e verificar se existem
+        recomendações ou sugestões de projetos futuros que possam resultar em um novo projeto de PDI.
+
+        Caso não encontre recomendações ou sugestões de projetos, você deve sugerir possibilidades de projetos de PDI
+        que poderiam ser desenvolvidos com base no tópico fornecido.
+        
+        Não se introduza no início da resposta. Vá direto ao ponto com os resultados da pesquisa.
+        """
+    )
+
+    entrada_do_agente = f"Tópico e lista de projetos: {topico}"
+    resultado_do_agente = call_agent(agente, entrada_do_agente)
+
+    return resultado_do_agente

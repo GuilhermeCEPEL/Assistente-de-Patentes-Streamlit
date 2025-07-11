@@ -23,12 +23,12 @@ def render_page2_aneel():
             st.session_state.aneelData['resultado_busca'] = resultado_busca
             st.session_state.aneelData['resultado_sugestao'] = resultado_da_sugestao
 
-    if 'resultado_busca' in st.session_state and st.session_state.aneelData['resultado_busca']:        
+    if 'resultado_busca' in st.session_state.aneelData and st.session_state.aneelData['resultado_busca']:        
         with st.expander("📃 Veja o resultado da busca por PDIs sobre esse tópico 📃", expanded=False):
             st.markdown("### Resultados da Pesquisa:")
             st.write(st.session_state.aneelData['resultado_busca'])
 
-    if 'resultado_sugestao' in st.session_state and st.session_state.aneelData['resultado_sugestao']:
+    if 'resultado_sugestao' in st.session_state.aneelData and st.session_state.aneelData['resultado_sugestao']:
         with st.expander("💡 Veja a sugestão de projetos relacionados 💡", expanded=False):
             st.markdown("### Sugestão de Projetos Relacionados:")
             st.write(st.session_state.aneelData['resultado_sugestao'])
